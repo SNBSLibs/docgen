@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>DocGen</RootNamespace>
+    <Title>DocGen</Title>
+    <Authors>Ted Swenner</Authors>
+    <Company>SNBS</Company>
+    <Product>DocGen</Product>
+    <Description>A lightweight yet powerful HTML documentation generator for .NET-oriented libraries</Description>
+    <RepositoryUrl>https://github.com/SNBSLibs/docgen</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>docs;documentation;xml docs parses</PackageTags>
+    <AssemblyVersion>0.0.0</AssemblyVersion>
+    <FileVersion>0.0.0</FileVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+  </PropertyGroup>
+
+</Project>
