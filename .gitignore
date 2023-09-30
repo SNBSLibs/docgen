@@ -1,0 +1,10 @@
+# ignoring temporary files
+*.swp
+*~
+
+# ignoring compiled files
+/**/bin/
+/**/obj/
+
+# ignoring Visual Studio files
+/**/.vs/
