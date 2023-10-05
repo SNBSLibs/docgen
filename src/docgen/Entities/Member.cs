@@ -18,5 +18,7 @@
         public string Notes { get; set; } = string.Empty;
 
         public Type? Type { get; set; }  // Null means the type is unknown
+
+        public MemberKind? Kind { get; set; }  // The same, null means the kind is unknown
     }
 }
