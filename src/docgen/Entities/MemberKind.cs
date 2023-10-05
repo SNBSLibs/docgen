@@ -6,7 +6,6 @@
     public enum MemberKind
     {
         Field,
-        Constant,
         Event,
         Method,
         Property,
