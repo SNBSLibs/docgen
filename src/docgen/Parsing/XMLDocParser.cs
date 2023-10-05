@@ -25,6 +25,7 @@ namespace DocGen.Parsing
             types = assembly.GetTypes().Select(t => new Type
             {
                 Name = t.Name,
+                FullName = t.FullName ?? t.Name,
                 GenericParameters = t.GetGenericArguments().Select(p => new GenericParameter
                 {
                     Name = p.Name
