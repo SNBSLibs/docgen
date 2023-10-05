@@ -13,7 +13,7 @@
 
         public IEnumerable<Exception>? Exceptions { get; set; }
 
-        public string ReturnValue { get; set; } = string.Empty;
+        public string? ReturnValue { get; set; } = string.Empty;
 
         public string Notes { get; set; } = string.Empty;
 
