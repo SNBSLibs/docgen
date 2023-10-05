@@ -19,6 +19,6 @@
 
         public Type? Type { get; set; }  // Null means the type is unknown
 
-        public MemberKind? Kind { get; set; }  // The same, null means the kind is unknown
+        public MemberKind Kind { get; set; } = MemberKind.Unknown;
     }
 }
