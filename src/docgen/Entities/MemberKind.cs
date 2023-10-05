@@ -9,6 +9,7 @@
         Event,
         Method,
         Property,
-        Constructor
+        Constructor,
+        Unknown  // This member kind has no return value, parameters or exceptions
     }
 }
