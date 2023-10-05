@@ -13,5 +13,8 @@
             = Enumerable.Empty<GenericParameter>();
 
         public string Notes { get; set; } = string.Empty;
+
+        public IEnumerable<Member> Members { get; set; }
+            = Enumerable.Empty<Member>();
     }
 }
