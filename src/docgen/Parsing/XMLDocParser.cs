@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using System.Reflection.Metadata.Ecma335;
 using System.Xml.Linq;
+using System.Text;
 using DocGen.Entities;
 using Type = DocGen.Entities.Type;
 
@@ -47,6 +48,46 @@ namespace DocGen.Parsing
             }
         }
 
+        // Remove elements like <c>, <see> etc and surround their contents with asterisks
+        // (to highlight them with special font in HTML)
+        // Escape existing asterisks with \
+        // Also reformatting lists: "- +term+ =description=" and escaping - + =
+        private string? Process(string? raw)
+        {
+            if (raw == null) return null;
+
+            string result = raw.Replace("*", "\\*");
+            result = string.Join('*', result.Split(new string[]
+                { "<c>", "</c>", "<code>", "</code>", "<example>", "</example>", "<see>", "</see>" },
+                StringSplitOptions.RemoveEmptyEntries));
+
+            result = result.Replace("-", "\\-");
+            result = result.Replace("+", "\\+");
+            result = result.Replace("=", "\\=");
+
+            var element = XElement.Parse($"<root>{result}</root>");
+            foreach (var list in element.Descendants("list"))
+            {
+                var listBuilder = new StringBuilder();
+
+                foreach (var item in list.Descendants("item"))
+                {
+                    var term = item.Element("term");
+                    var description = item.Element("description");
+
+                    listBuilder.AppendLine($"- +{term?.Value.Trim()}+ ={description?.Value.Trim()}=");
+                }
+
+                list.AddAfterSelf(listBuilder.ToString());
+                list.Remove();
+            }
+            string resultWithRoot = element.ToString();
+            result = resultWithRoot.Substring(6, resultWithRoot.Length - 13);  // Remove <root> and </root>
+
+            return result;
+        }
+
+        #region Helpers
         private IEnumerable<Parameter>? GetParameters(MemberInfo member)
         {
             if (member.MemberType != MemberTypes.Method &&
@@ -83,5 +124,6 @@ namespace DocGen.Parsing
                 _ => MemberKind.Unknown
             };
         }
+        #endregion
     }
 }
