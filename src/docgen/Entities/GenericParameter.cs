@@ -1,4 +1,6 @@
-﻿namespace DocGen.Entities
+﻿using System.Reflection;
+
+namespace DocGen.Entities
 {
     // Entity representing a generic parameter
 
