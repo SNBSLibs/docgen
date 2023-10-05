@@ -5,10 +5,10 @@
     [Serializable]
     public class Parameter
     {
-        public string Name { get; set; } = string.Empty;
+        public string Name { get; internal set; } = string.Empty;
 
-        public System.Type Type { get; set; } = typeof(object);
+        public System.Type Type { get; internal set; } = typeof(object);
 
-        public string Description { get; set; } = string.Empty;
+        public string Description { get; internal set; } = string.Empty;
     }
 }
