@@ -78,7 +78,7 @@ namespace DocGen.Parsing
                     listBuilder.AppendLine($"- +{term?.Value.Trim()}+ ={description?.Value.Trim()}=");
                 }
 
-                list.AddAfterSelf(listBuilder.ToString());
+                list.AddAfterSelf(new XText(listBuilder.ToString()));
                 list.Remove();
             }
             string resultWithRoot = element.ToString();
