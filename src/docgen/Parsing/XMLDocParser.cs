@@ -11,13 +11,11 @@ namespace DocGen.Parsing
 
     internal class XMLDocParser
     {
-        private string docsPath;
         private Assembly assembly;
         private List<Type> types;
 
-        internal XMLDocParser(string docsPath, Assembly assembly)
+        internal XMLDocParser(Assembly assembly)
         {
-            this.docsPath = docsPath;
             this.assembly = assembly;
 
             // Construct the entities based on types that the assembly contains
@@ -40,7 +38,7 @@ namespace DocGen.Parsing
                     })
                 };
 
-                foreach (var member in type.Members) member.Type = type;
+                foreach (var member in type.Members) member.Type = type;  // #5
                 return type;
             }).ToList();
         }
