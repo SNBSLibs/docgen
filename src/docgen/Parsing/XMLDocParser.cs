@@ -23,29 +23,26 @@ namespace DocGen.Parsing
             // Construct the entities based on types that the assembly contains
             // We don't yet fill in properties connected with documentation
             // (they will be filled in in the Parse method)
-            types = assembly.GetTypes().Select(t => new Type
-            {
-                Name = t.Name,
-                FullName = t.FullName ?? t.Name,
-                GenericParameters = t.GetGenericArguments().Select(p => new GenericParameter
+            types = assembly.GetTypes().Select(t => {
+                var type = new Type
                 {
-                    Name = p.Name
-                }),
-                Members = t.GetMembers().Select(m => new Member
-                {
-                    Name = m.Name,
-                    Parameters = GetParameters(m),
-                    Kind = GetKind(m)
-                })
-            }).ToList();
+                    Name = t.Name,
+                    FullName = t.FullName ?? t.Name,
+                    GenericParameters = t.GetGenericArguments().Select(p => new GenericParameter
+                    {
+                        Name = p.Name
+                    }),
+                    Members = t.GetMembers().Select(m => new Member
+                    {
+                        Name = m.Name,
+                        Parameters = GetParameters(m),
+                        Kind = GetKind(m)
+                    })
+                };
 
-            // Unfortunately, it isn't possible to use the object being constructed
-            // in its initializer, so we have to set the Type properties of newly
-            // constructed Members separately
-            foreach (var type in types)
-            {
                 foreach (var member in type.Members) member.Type = type;
-            }
+                return type;
+            }).ToList();
         }
 
         // Remove elements like <c>, <see> etc and surround their contents with asterisks
