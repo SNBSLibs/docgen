@@ -1,7 +1,9 @@
-﻿using System.Reflection;
-using System.Reflection.Metadata.Ecma335;
-using System.Xml.Linq;
+﻿using System.Text.RegularExpressions;
 using System.Text;
+using System.Reflection;
+using System.Xml;
+using System.Xml.Linq;
+using System.Xml.XPath;
 using DocGen.Entities;
 using Type = DocGen.Entities.Type;
 
@@ -76,6 +78,25 @@ namespace DocGen.Parsing
                 list.AddAfterSelf(new XText(listBuilder.ToString()));
                 list.Remove();
             }
+
+            // "<see>"s
+            foreach (var see in element.Descendants("see"))
+            {
+                string cref = see.Attribute("cref")!.Value;
+
+                // Fetch short name
+                // (from the last full stop before the first parenthesis to that parenthesis)
+                string tillParenthesis = cref.Substring(0, cref.IndexOf('('));
+                string shortName = tillParenthesis.Substring(tillParenthesis.LastIndexOf('.') + 1);
+
+                // Only distinguish between types and members
+                // (all the rest is stored in MemberKind)
+                if (cref[0] != 'T') cref = string.Concat("M", cref.AsSpan(1));
+
+                see.AddAfterSelf(new XText($"${shortName}$&{cref}&"));
+                see.Remove();
+            }
+
             string resultWithRoot = element.ToString();
             result = resultWithRoot.Substring(6, resultWithRoot.Length - 13);  // Remove <root> and </root>
 
