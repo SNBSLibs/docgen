@@ -46,6 +46,51 @@ namespace DocGen.Parsing
             }).ToList();
         }
 
+        // Write data from XML docs into types
+        private IEnumerable<Type> Parse(string docsPath)
+        {
+            var docs = XDocument.Load(
+                new FileStream(docsPath, FileMode.Open));
+
+            for (int i = 0; i < types.Count; i++)
+            {
+                string? typeDocsXml = Process(
+                    (string)docs.XPathEvaluate($"//member[@name='T:{types[i].FullName}']"));
+                if (typeDocsXml == null) continue;
+                // XElement.Parse won't parse a string that doesn't start with an XML element
+                var typeDocs = XElement.Parse($"<root>{typeDocsXml}</root>");
+
+                types[i].Summary = typeDocs.Element("summary")?.Value
+                    ?? string.Empty;
+
+                // Notes consist of <remarks> and <seealso>
+                // If they both exist, their contents are separated with two new lines
+                string? remarks = typeDocs.Element("remarks")?.Value;
+                string? seealso = typeDocs.Element("seealso")?.Value;
+
+                if (remarks == null && seealso == null)
+                    types[i].Notes = string.Empty;
+                else if (remarks == null)
+                    types[i].Notes = seealso!;
+                else if (seealso == null)
+                    types[i].Notes = remarks;
+                else
+                    types[i].Notes = $"{remarks}\n\n{seealso}";
+
+                for (int j = 0; j < types[i].GenericParameters.Count(); j++)
+                {
+                    types[i].GenericParameters.ElementAt(j).Description =
+                        typeDocs.Elements("typeparam").FirstOrDefault(p =>
+                        {
+                            string? name = p.Attribute("name")?.Value;
+                            if (name == null) return false;
+                            return types[i].GenericParameters.ElementAt(j)
+                                .Name == name;
+                        })?.Value ?? string.Empty;
+                }
+            }
+        }
+
         // Transform "<c>"s to asterisk-surrounded content
         // Reformat lists ("-+term+=description=all_the_rest"),
         // paragraphs (%paragraph%),
