@@ -10,6 +10,6 @@
         Method,
         Property,
         Constructor,
-        Unknown  // This member kind has no return value, parameters or exceptions
+        Unknown  // This member kind is not processed
     }
 }
