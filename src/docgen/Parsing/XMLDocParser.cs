@@ -47,7 +47,7 @@ namespace DocGen.Parsing
         }
 
         // Write data from XML docs into types
-        private IEnumerable<Type> Parse(string docsPath)
+        internal IEnumerable<Type> Parse(string docsPath)
         {
             var docs = XDocument.Load(
                 new FileStream(docsPath, FileMode.Open));
