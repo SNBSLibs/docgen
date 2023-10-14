@@ -148,8 +148,9 @@ namespace DocGen.Parsing
 
                 // Fetch short name
                 // (from the last full stop before the first parenthesis to that parenthesis)
-                string tillParenthesis = cref.Substring(0, cref.IndexOf('('));
-                string shortName = tillParenthesis.Substring(tillParenthesis.LastIndexOf('.') + 1);
+                string tillParenthesis = cref[..cref.IndexOf('(')];
+                string shortName = tillParenthesis
+                    [(tillParenthesis.LastIndexOf('.') + 1)..];
 
                 // Only distinguish between types and members
                 // (all the rest is stored in MemberKind)
@@ -172,7 +173,7 @@ namespace DocGen.Parsing
 
             string resultWithRoot = element.ToString();
             // Remove <root> and </root>
-            result = resultWithRoot.Substring(6, resultWithRoot.Length - 13);
+            result = resultWithRoot[6..^7];
 
             return result;
         }
