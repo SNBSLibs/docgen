@@ -34,7 +34,8 @@ namespace DocGen.Parsing
                     }),
                     Members = t.GetMembers().Select(m => new Member
                     {
-                        Name = m.Name,
+                        // Replace ".ctor" with "#ctor", as it's stored in XML docs 
+                        Name = m.Name.Replace('.', '#'),
                         Parameters = GetParameters(m),
                         Kind = GetKind(m)
                     })
@@ -45,24 +46,31 @@ namespace DocGen.Parsing
             }).ToList();
         }
 
-        // Remove elements like <c>, <see> etc and surround their contents with asterisks
-        // (to highlight them with special font in HTML)
-        // Escape existing asterisks with \
-        // Also reformatting lists: "- +term+ =description=" and escaping - + =
+        // Transform "<c>"s to asterisk-surrounded content
+        // Reformat lists ("-+term+=description=all_the_rest"),
+        // paragraphs (%paragraph%),
+        // code examples (%*example*%),
+        // <see> references ($referenced_name$&cref_attribute&)
+        // Escape the special characters used
         private string? Process(string? raw)
         {
             if (raw == null) return null;
 
-            string result = raw.Replace("*", "\\*");
-            result = string.Join('*', result.Split(new string[]
-                { "<c>", "</c>", "<code>", "</code>", "<example>", "</example>", "<see>", "</see>" },
-                StringSplitOptions.RemoveEmptyEntries));
+            // Escaping
+            string result = Regex.Replace(raw, @"[\\*\-+=%$&]", m => "\\" + m.Value);
 
-            result = result.Replace("-", "\\-");
-            result = result.Replace("+", "\\+");
-            result = result.Replace("=", "\\=");
+            // Paragraphs
+            result = result.Replace("<para>", "%");
+            result = result.Replace("</para>", "%");
 
+            // Code examples
+            result = Regex.Replace(result, @"<code>|<example>|</code>|</example>",
+                m => m.Value.Contains('/') ? "*%" : "%*");
+
+            // Lists
+            // XElement.Parse won't parse a string that doesn't start with an XML element
             var element = XElement.Parse($"<root>{result}</root>");
+
             foreach (var list in element.Descendants("list"))
             {
                 var listBuilder = new StringBuilder();
@@ -72,9 +80,14 @@ namespace DocGen.Parsing
                     var term = item.Element("term");
                     var description = item.Element("description");
 
-                    listBuilder.AppendLine($"- +{term?.Value.Trim()}+ ={description?.Value.Trim()}=");
+                    listBuilder.AppendLine($"-+{term?.Value.Trim()}+={description?.Value.Trim()}=" +
+                        // Also fetch text nodes that are direct children of the <item>
+                        // and put them after term and description
+                        string.Concat(item.Nodes().Where(n => n.NodeType == XmlNodeType.Text)
+                        .Select(n => n.ToString())));
                 }
 
+                // Replace the list element with formatted text
                 list.AddAfterSelf(new XText(listBuilder.ToString()));
                 list.Remove();
             }
@@ -98,7 +111,8 @@ namespace DocGen.Parsing
             }
 
             string resultWithRoot = element.ToString();
-            result = resultWithRoot.Substring(6, resultWithRoot.Length - 13);  // Remove <root> and </root>
+            // Remove <root> and </root>
+            result = resultWithRoot.Substring(6, resultWithRoot.Length - 13);
 
             return result;
         }
