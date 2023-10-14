@@ -59,6 +59,10 @@ namespace DocGen.Parsing
             // Escaping
             string result = Regex.Replace(raw, @"[\\*\-+=%$&]", m => "\\" + m.Value);
 
+            // Inline code
+            result = result.Replace("<c>", "*");
+            result = result.Replace("</c>", "*");
+
             // Paragraphs
             result = result.Replace("<para>", "%");
             result = result.Replace("</para>", "%");
@@ -108,6 +112,17 @@ namespace DocGen.Parsing
 
                 see.AddAfterSelf(new XText($"${shortName}$&{cref}&"));
                 see.Remove();
+            }
+
+            // Parameter and type parameter references
+            foreach (var reference in element.Descendants()
+                .Where(el => el.Name == "<paramref>" || el.Name == "typeparamref"))
+            {
+                string? name = reference.Attribute("name")?.Value;
+                if (name == null) continue;
+
+                reference.AddAfterSelf(new XText($"*{name}*"));
+                reference.Remove();
             }
 
             string resultWithRoot = element.ToString();
