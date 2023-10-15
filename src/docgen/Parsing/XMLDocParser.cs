@@ -1,11 +1,12 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Reflection;
 using System.Text;
-using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
 using DocGen.Entities;
 using Type = DocGen.Entities.Type;
+using Exception = DocGen.Entities.Exception;
 
 namespace DocGen.Parsing
 {
@@ -66,6 +67,7 @@ namespace DocGen.Parsing
                 // If they both exist, their contents are separated with two new lines
                 string? remarks = typeDocs.Element("remarks")?.Value;
                 string? seealso = typeDocs.Element("seealso")?.Value;
+                types[i].Notes = Combine(remarks, seealso);
 
                 for (int j = 0; j < types[i].GenericParameters.Count(); j++)
                 {
@@ -78,7 +80,105 @@ namespace DocGen.Parsing
                                 .Name == name;
                         })?.Value ?? string.Empty;
                 }
+
+                // --------- Parse members ---------
+                for (int j = 0; j < types[i].Members.Count(); j++)
+                {
+                    Member member = types[i].Members.ElementAt(j);
+                    if (member.Kind == MemberKind.Unknown) continue;
+
+                    // Construct a string to look for in the docs
+                    // (e.g. "M:System.Int32.Parse()")
+                    var nameBuilder = new StringBuilder();
+
+                    char prefix = member.Kind switch
+                    {
+                        MemberKind.Field => 'F',
+                        MemberKind.Event => 'E',
+                        MemberKind.Property => 'P',
+                        _ => 'M'
+                    };
+                    nameBuilder.Append(prefix);
+
+                    nameBuilder.Append(types[i].FullName);
+                    nameBuilder.Append('.');
+                    nameBuilder.Append(member.Name);
+                    
+                    if (prefix == 'M')
+                    {
+                        nameBuilder.Append('(');
+
+                        foreach (var parameter in member.Parameters!)
+                        {
+                            nameBuilder.Append(parameter.Type.FullName);
+                            nameBuilder.Append(',');
+                        }
+
+                        nameBuilder.Remove(nameBuilder.Length - 1, 1);
+                        nameBuilder.Append(')');
+                    }
+
+                    string? memberDocsXml = Process(
+                        (string)docs.XPathEvaluate($"//member[@name='{nameBuilder}']"));
+                    if (memberDocsXml == null) continue;
+                    var memberDocs = XElement.Parse($"<root>{memberDocsXml}</root>");
+
+                    member.Summary = memberDocs.Element("summary")?.Value
+                        ?? string.Empty;
+
+                    // Return value consists of <returns> and <value>
+                    string? returns = memberDocs.Element("returns")?.Value;
+                    string? value = memberDocs.Element("value")?.Value;
+                    member.ReturnValue = Combine(returns, value);
+
+                    string? memberRemarks = memberDocs.Element("remarks")?.Value;
+                    string? memberSeealso = memberDocs.Element("seealso")?.Value;
+                    member.Notes = Combine(memberRemarks, memberSeealso);
+
+                    if (member.Parameters != null)
+                    {
+                        for (int k = 0; k < member.Parameters.Count(); k++)
+                        {
+                            member.Parameters.ElementAt(k).Description =
+                                memberDocs.Elements("param").FirstOrDefault(p =>
+                                {
+                                    string? name = p.Attribute("name")?.Value;
+                                    if (name == null) return false;
+                                    return member.Parameters.ElementAt(k)
+                                        .Name == name;
+                                })?.Value ?? string.Empty;
+                        }
+                    }
+
+                    if (member.Kind != MemberKind.Field
+                        && member.Kind != MemberKind.Event)
+                    {
+                        var exceptionElements = memberDocs.Elements("exception");
+                        var exceptions = new List<Exception>();
+
+                        foreach (var element in exceptionElements)
+                        {
+                            string? cref = element.Attribute("cref")?.Value;
+                            if (cref == null) continue;
+
+                            var exception = new Exception();
+
+                            var type = System.Type.GetType(cref[2..]);
+                            // If it cannot find type, we fall back to Exception
+                            // (as specified in the definition of the Type property)
+                            if (type != null) exception.Type = type;
+
+                            exception.ThrownOn = element.Value ?? string.Empty;
+
+                            exceptions.Add(exception);
+                        }
+
+                        member.Exceptions = exceptions;
+                    }
+                }
             }
+
+            return types;
         }
 
         // Transform "<c>"s to asterisk-surrounded content
@@ -205,6 +305,18 @@ namespace DocGen.Parsing
                 MemberTypes.Constructor => MemberKind.Constructor,
                 _ => MemberKind.Unknown
             };
+        }
+
+        private string Combine(string? str1, string? str2)
+        {
+            if (str1 == null && str2 == null)
+                return string.Empty;
+            else if (str2 == null)
+                return str1!;
+            else if (str1 == null)
+                return str2;
+            else
+                return $"{str1}\n\n{str2}";
         }
         #endregion
     }
