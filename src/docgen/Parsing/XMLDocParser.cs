@@ -47,7 +47,6 @@ namespace DocGen.Parsing
             }).ToList();
         }
 
-        // Write data from XML docs into types
         internal IEnumerable<Type> Parse(string docsPath)
         {
             var docs = XDocument.Load(docsPath);
@@ -179,6 +178,12 @@ namespace DocGen.Parsing
             }
 
             return types;
+        }
+
+        internal void GetData(out Assembly assembly, out IEnumerable<Type> types)
+        {
+            assembly = this.assembly;
+            types = this.types;
         }
 
         // Transform "<c>"s to asterisk-surrounded content
