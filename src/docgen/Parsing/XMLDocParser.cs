@@ -49,8 +49,7 @@ namespace DocGen.Parsing
         // Write data from XML docs into types
         internal IEnumerable<Type> Parse(string docsPath)
         {
-            var docs = XDocument.Load(
-                new FileStream(docsPath, FileMode.Open));
+            var docs = XDocument.Load(docsPath);
 
             for (int i = 0; i < types.Count; i++)
             {
@@ -67,15 +66,6 @@ namespace DocGen.Parsing
                 // If they both exist, their contents are separated with two new lines
                 string? remarks = typeDocs.Element("remarks")?.Value;
                 string? seealso = typeDocs.Element("seealso")?.Value;
-
-                if (remarks == null && seealso == null)
-                    types[i].Notes = string.Empty;
-                else if (remarks == null)
-                    types[i].Notes = seealso!;
-                else if (seealso == null)
-                    types[i].Notes = remarks;
-                else
-                    types[i].Notes = $"{remarks}\n\n{seealso}";
 
                 for (int j = 0; j < types[i].GenericParameters.Count(); j++)
                 {
@@ -198,7 +188,8 @@ namespace DocGen.Parsing
                 return ctor.GetParameters().Select(p => new Parameter
                 {
                     Name = p.Name ?? "param",
-                    Type = p.ParameterType
+                    Type = p.ParameterType,
+                    IsReference = p.IsOut || p.ParameterType.IsByRef
                 });
             }
         }
