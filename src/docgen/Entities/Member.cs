@@ -15,7 +15,7 @@
 
         public string? ReturnValue { get; internal set; } = string.Empty;
 
-        public Type? ReturnType { get; internal set; }
+        public System.Type? ReturnType { get; internal set; }
 
         public string Notes { get; internal set; } = string.Empty;
 
