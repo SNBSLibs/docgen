@@ -37,7 +37,8 @@ namespace DocGen.Parsing
                         // Replace ".ctor" with "#ctor", as it's stored in XML docs 
                         Name = m.Name.Replace('.', '#'),
                         Parameters = GetParameters(m),
-                        Kind = GetKind(m)
+                        Kind = GetKind(m),
+                        ReturnType = GetReturnType(m)
                     })
                 };
 
@@ -52,6 +53,12 @@ namespace DocGen.Parsing
 
             for (int i = 0; i < types.Count; i++)
             {
+                // Construct a string to look for in the docs
+                string name = types[i].FullName;
+                int typeParamsCount = System.Type.GetType(types[i].FullName)?
+                    .GetGenericArguments()?.Length ?? 0;
+                if (typeParamsCount > 0) name += '`' + typeParamsCount.ToString();
+
                 string? typeDocsXml = Process(
                     (string)docs.XPathEvaluate($"//member[@name='T:{types[i].FullName}']"));
                 if (typeDocsXml == null) continue;
@@ -85,8 +92,6 @@ namespace DocGen.Parsing
                     Member member = types[i].Members.ElementAt(j);
                     if (member.Kind == MemberKind.Unknown) continue;
 
-                    // Construct a string to look for in the docs
-                    // (e.g. "M:System.Int32.Parse()")
                     var nameBuilder = new StringBuilder();
 
                     char prefix = member.Kind switch
@@ -109,11 +114,30 @@ namespace DocGen.Parsing
                         foreach (var parameter in member.Parameters!)
                         {
                             nameBuilder.Append(parameter.Type.FullName);
+
+                            var genericParameters = parameter.Type.GetGenericArguments();
+                            if (genericParameters.Length > 0)
+                            {
+                                nameBuilder.Append('{');
+
+                                foreach (System.Type genericParameter in genericParameters)
+                                    nameBuilder.Append(genericParameter.FullName);
+
+                                nameBuilder.Append('}');
+                            }
+
                             nameBuilder.Append(',');
                         }
 
                         nameBuilder.Remove(nameBuilder.Length - 1, 1);
                         nameBuilder.Append(')');
+
+                        // Casts (named op_Implicit or op_Explicit) have a special name format
+                        if (member.Name == "op_Implicit" || member.Name == "op_Explicit")
+                        {
+                            nameBuilder.Append('~');
+                            nameBuilder.Append(member.ReturnType!.FullName);
+                        }
                     }
 
                     string? memberDocsXml = Process(
@@ -309,6 +333,17 @@ namespace DocGen.Parsing
                 MemberTypes.Constructor => MemberKind.Constructor,
                 _ => MemberKind.Unknown
             };
+        }
+
+        private System.Type? GetReturnType(MemberInfo member)
+        {
+            if (member is FieldInfo field) return field.FieldType;
+            if (member is EventInfo @event) return @event.EventHandlerType;
+            if (member is MethodInfo method) return method.ReturnType;
+            if (member is PropertyInfo property) return property.PropertyType;
+            if (member is ConstructorInfo constructor) return constructor.DeclaringType;
+
+            return null;
         }
 
         private string Combine(string? str1, string? str2)
