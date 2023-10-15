@@ -11,13 +11,12 @@ using Exception = DocGen.Entities.Exception;
 namespace DocGen.Parsing
 {
     // This class parses XML documentation into the entities
-
-    internal class XMLDocParser
+    public class XMLDocParser
     {
         private Assembly assembly;
         private List<Type> types;
 
-        internal XMLDocParser(Assembly assembly)
+        public XMLDocParser(Assembly assembly)
         {
             this.assembly = assembly;
 
@@ -47,7 +46,7 @@ namespace DocGen.Parsing
             }).ToList();
         }
 
-        internal IEnumerable<Type> Parse(string docsPath)
+        public IEnumerable<Type> Parse(string docsPath)
         {
             var docs = XDocument.Load(docsPath);
 
@@ -180,7 +179,7 @@ namespace DocGen.Parsing
             return types;
         }
 
-        internal void GetData(out Assembly assembly, out IEnumerable<Type> types)
+        public void GetData(out Assembly assembly, out IEnumerable<Type> types)
         {
             assembly = this.assembly;
             types = this.types;
