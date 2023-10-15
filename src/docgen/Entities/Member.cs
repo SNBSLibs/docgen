@@ -15,6 +15,8 @@
 
         public string? ReturnValue { get; internal set; } = string.Empty;
 
+        public System.Type? ReturnType { get; internal set; }
+
         public string Notes { get; internal set; } = string.Empty;
 
         public Type? Type { get; internal set; }  // Null means the type is unknown
