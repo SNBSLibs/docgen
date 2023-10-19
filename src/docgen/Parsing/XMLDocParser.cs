@@ -38,7 +38,8 @@ namespace DocGen.Parsing
                         Name = m.Name.Replace('.', '#'),
                         Parameters = GetParameters(m),
                         Kind = GetKind(m),
-                        ReturnType = GetReturnType(m)
+                        ReturnType = GetReturnType(m),
+                        GenericParameters = GetGenericParameters(m)
                     })
                 };
 
@@ -101,6 +102,12 @@ namespace DocGen.Parsing
                     nameBuilder.Append(types[i].FullName);
                     nameBuilder.Append('.');
                     nameBuilder.Append(member.Name);
+
+                    if (member.GenericParameters != null &&
+                        member.GenericParameters.Count() > 0)
+                    {
+                        nameBuilder.Append('`' + member.GenericParameters.Count());
+                    }
                     
                     if (prefix == 'M')
                     {
@@ -116,7 +123,48 @@ namespace DocGen.Parsing
                                 nameBuilder.Append('{');
 
                                 foreach (System.Type genericParameter in genericParameters)
-                                    nameBuilder.Append(genericParameter.FullName);
+                                {
+                                    // If full name is null or empty, it's a reference to
+                                    // a generic parameter of the method or of the type
+                                    if (string.IsNullOrEmpty(genericParameter.FullName))
+                                    {
+                                        // Such references are represented in XML docs as
+                                        // `<member_typeparam_number>
+                                        // if it's a generic parameter of the member
+                                        // OR
+                                        // `<member_typeparams_count>+<type_typeparam_number> 
+                                        // if it's a generic parameter of the type
+
+                                        int index = -1;
+
+                                        // Search in generic parameters of the member first
+                                        // They're not null because it's a method or constructor
+                                        if (member.GenericParameters!.Count() > 0)
+                                        {
+                                            index = member.GenericParameters!
+                                                .Select(p => p.Name)
+                                                .ToList()
+                                                .IndexOf(genericParameter.Name);
+                                        }
+
+                                        // It's a generic parameter of the type
+                                        if (index < 0 &&
+                                            types[i].GenericParameters.Count() > 0)
+                                        {
+                                            index = member.GenericParameters!
+                                                .Select(p => p.Name)
+                                                .ToList()
+                                                .IndexOf(genericParameter.Name) +
+                                                member.GenericParameters!.Count();
+                                        }
+
+                                        if (index >= 0) nameBuilder.Append('`' + index);
+                                        // Falling back to Object if such generic parameter
+                                        // not found
+                                        else nameBuilder.Append("System.Object");
+                                    }
+                                    else  // Otherwise it's a hard-coded type reference
+                                        nameBuilder.Append(genericParameter.FullName);
 
                                     nameBuilder.Append(',');
                                 }
@@ -163,12 +211,16 @@ namespace DocGen.Parsing
                             member.Parameters.ElementAt(k).Description =
                                 FindElementValueByName(memberDocs, "param",
                                     member.Parameters.ElementAt(k).Name);
-                                {
-                                    string? name = p.Attribute("name")?.Value;
-                                    if (name == null) return false;
-                                    return member.Parameters.ElementAt(k)
-                                        .Name == name;
-                                })?.Value ?? string.Empty;
+                        }
+                    }
+
+                    if (member.GenericParameters != null)
+                    {
+                        for (int k = 0; k < member.GenericParameters.Count(); k++)
+                        {
+                            member.GenericParameters.ElementAt(k).Description =
+                                FindElementValueByName(memberDocs, "typeparam",
+                                    member.GenericParameters.ElementAt(k).Name);
                         }
                     }
 
@@ -342,6 +394,22 @@ namespace DocGen.Parsing
             if (member is MethodInfo method) return method.ReturnType;
             if (member is PropertyInfo property) return property.PropertyType;
             if (member is ConstructorInfo constructor) return constructor.DeclaringType;
+
+            return null;
+        }
+
+        private IEnumerable<GenericParameter>? GetGenericParameters(MemberInfo member)
+        {
+            if (member is MethodInfo method)
+                return method.GetGenericArguments().Select(p => new GenericParameter
+                {
+                    Name = p.Name
+                });
+            else if (member is ConstructorInfo constructor)
+                return constructor.GetGenericArguments().Select(p => new GenericParameter
+                {
+                    Name = p.Name
+                });
 
             return null;
         }
