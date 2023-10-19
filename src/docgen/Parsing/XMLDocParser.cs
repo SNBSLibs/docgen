@@ -60,7 +60,7 @@ namespace DocGen.Parsing
                 if (typeParamsCount > 0) name += '`' + typeParamsCount.ToString();
 
                 string? typeDocsXml = Process(
-                    (string)docs.XPathEvaluate($"//member[@name='T:{types[i].FullName}']"));
+                    (string)docs.XPathEvaluate($"//member[@name='T:{name}']"));
                 if (typeDocsXml == null) continue;
                 // XElement.Parse won't parse a string that doesn't start with an XML element
                 var typeDocs = XElement.Parse($"<root>{typeDocsXml}</root>");
