@@ -118,6 +118,10 @@ namespace DocGen.Parsing
                                 foreach (System.Type genericParameter in genericParameters)
                                     nameBuilder.Append(genericParameter.FullName);
 
+                                    nameBuilder.Append(',');
+                                }
+
+                                nameBuilder.Remove(nameBuilder.Length - 1, 1);
                                 nameBuilder.Append('}');
                             }
 
