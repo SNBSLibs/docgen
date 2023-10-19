@@ -55,7 +55,7 @@ namespace DocGen.Parsing
             {
                 // Construct a string to look for in the docs
                 string name = types[i].FullName;
-                int typeParamsCount = System.Type.GetType(types[i].FullName)?
+                int typeParamsCount = assembly.GetType(types[i].FullName)?
                     .GetGenericArguments()?.Length ?? 0;
                 if (typeParamsCount > 0) name += '`' + typeParamsCount.ToString();
 
@@ -185,7 +185,7 @@ namespace DocGen.Parsing
 
                             var exception = new Exception();
 
-                            var type = System.Type.GetType(cref[2..]);
+                            var type = assembly.GetType(cref[2..]);
                             // If it cannot find type, we fall back to Exception
                             // (as specified in the definition of the Type property)
                             if (type != null) exception.Type = type;
