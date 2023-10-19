@@ -77,13 +77,8 @@ namespace DocGen.Parsing
                 for (int j = 0; j < types[i].GenericParameters.Count(); j++)
                 {
                     types[i].GenericParameters.ElementAt(j).Description =
-                        typeDocs.Elements("typeparam").FirstOrDefault(p =>
-                        {
-                            string? name = p.Attribute("name")?.Value;
-                            if (name == null) return false;
-                            return types[i].GenericParameters.ElementAt(j)
-                                .Name == name;
-                        })?.Value ?? string.Empty;
+                        FindElementValueByName(typeDocs, "typeparam",
+                            types[i].GenericParameters.ElementAt(j).Name);
                 }
 
                 // --------- Parse members ---------
@@ -162,7 +157,8 @@ namespace DocGen.Parsing
                         for (int k = 0; k < member.Parameters.Count(); k++)
                         {
                             member.Parameters.ElementAt(k).Description =
-                                memberDocs.Elements("param").FirstOrDefault(p =>
+                                FindElementValueByName(memberDocs, "param",
+                                    member.Parameters.ElementAt(k).Name);
                                 {
                                     string? name = p.Attribute("name")?.Value;
                                     if (name == null) return false;
@@ -344,6 +340,18 @@ namespace DocGen.Parsing
             if (member is ConstructorInfo constructor) return constructor.DeclaringType;
 
             return null;
+        }
+
+        // In root, searches for an element called searchFor with a name attribute with value compareTo
+        // and returns value of the element
+        private string FindElementValueByName(XElement root, string searchFor, string compareTo)
+        {
+            return root.Elements(searchFor).FirstOrDefault(p =>
+            {
+                string? name = p.Attribute("name")?.Value;
+                if (name == null) return false;
+                return name == compareTo;
+            })?.Value ?? string.Empty;
         }
 
         private string Combine(string? str1, string? str2)
