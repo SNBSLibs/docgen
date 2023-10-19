@@ -9,6 +9,8 @@
 
         public string Summary { get; internal set; } = string.Empty;
 
+        public IEnumerable<GenericParameter>? GenericParameters { get; internal set; }
+
         public IEnumerable<Parameter>? Parameters { get; internal set; }
 
         public IEnumerable<Exception>? Exceptions { get; internal set; }
