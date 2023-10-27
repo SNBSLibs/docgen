@@ -116,6 +116,7 @@ namespace DocGen.Parsing
                         foreach (var parameter in member.Parameters!)
                         {
                             nameBuilder.Append(parameter.Type.FullName);
+<<<<<<< HEAD
 
                             var genericParameters = parameter.Type.GetGenericArguments();
                             if (genericParameters.Length > 0)
@@ -172,7 +173,6 @@ namespace DocGen.Parsing
                                 nameBuilder.Remove(nameBuilder.Length - 1, 1);
                                 nameBuilder.Append('}');
                             }
-
                             nameBuilder.Append(',');
                         }
 
@@ -387,6 +387,7 @@ namespace DocGen.Parsing
             };
         }
 
+<<<<<<< HEAD
         private System.Type? GetReturnType(MemberInfo member)
         {
             if (member is FieldInfo field) return field.FieldType;
