@@ -48,9 +48,18 @@ namespace DocGen.Parsing
             }).ToList();
         }
 
-        public IEnumerable<Type> Parse(string docsPath)
+        public IEnumerable<Type> ParseFromFile(string docsPath) =>
+            Parse(File.ReadAllText(docsPath));
+
+        public IEnumerable<Type> ParseFromStream(Stream stream)
         {
-            var docs = XDocument.Load(docsPath);
+            var reader = new StreamReader(stream);
+            return Parse(reader.ReadToEnd());
+        }
+
+        public IEnumerable<Type> Parse(string documentation)
+        {
+            var docs = XDocument.Parse(documentation);
 
             for (int i = 0; i < types.Count; i++)
             {
