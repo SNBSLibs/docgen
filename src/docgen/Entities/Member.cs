@@ -13,6 +13,8 @@
 
         public IEnumerable<Exception>? Exceptions { get; internal set; }
 
+        public IEnumerable<GenericParameter>? GenericParameters { get; internal set; }
+
         public string? ReturnValue { get; internal set; } = string.Empty;
 
         public System.Type? ReturnType { get; internal set; }

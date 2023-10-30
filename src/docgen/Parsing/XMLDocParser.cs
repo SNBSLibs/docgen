@@ -16,7 +16,8 @@ namespace DocGen.Parsing
         private Assembly assembly;
         private List<Type> types;
 
-        public XMLDocParser(Assembly assembly)
+        public XMLDocParser(Assembly assembly,
+            string? docs = null, string? file = null, Stream? stream = null)
         {
             this.assembly = assembly;
 
@@ -38,29 +39,44 @@ namespace DocGen.Parsing
                         Name = m.Name.Replace('.', '#'),
                         Parameters = GetParameters(m),
                         Kind = GetKind(m),
-                        ReturnType = GetReturnType(m)
+                        ReturnType = GetReturnType(m),
+                        GenericParameters = GetGenericParameters(m)
                     })
                 };
 
                 foreach (var member in type.Members) member.Type = type;  // #5
                 return type;
             }).ToList();
+
+            if (docs != null) Parse(docs);
+            else if (file != null) ParseFromFile(file);
+            else if (stream != null) ParseFromStream(stream);
+            else throw new InvalidOperationException("You must specify at least one XML docs source");
         }
 
-        public IEnumerable<Type> Parse(string docsPath)
+        private IEnumerable<Type> ParseFromFile(string docsPath) =>
+            Parse(File.ReadAllText(docsPath));
+
+        private IEnumerable<Type> ParseFromStream(Stream stream)
         {
-            var docs = XDocument.Load(docsPath);
+            using var reader = new StreamReader(stream);
+            return Parse(reader.ReadToEnd());
+        }
+
+        private IEnumerable<Type> Parse(string documentation)
+        {
+            var docs = XDocument.Parse(documentation);
 
             for (int i = 0; i < types.Count; i++)
             {
                 // Construct a string to look for in the docs
                 string name = types[i].FullName;
-                int typeParamsCount = System.Type.GetType(types[i].FullName)?
+                int typeParamsCount = assembly.GetType(types[i].FullName)?
                     .GetGenericArguments()?.Length ?? 0;
                 if (typeParamsCount > 0) name += '`' + typeParamsCount.ToString();
 
                 string? typeDocsXml = Process(
-                    (string)docs.XPathEvaluate($"//member[@name='T:{types[i].FullName}']"));
+                    (string)docs.XPathEvaluate($"//member[@name='T:{name}']"));
                 if (typeDocsXml == null) continue;
                 // XElement.Parse won't parse a string that doesn't start with an XML element
                 var typeDocs = XElement.Parse($"<root>{typeDocsXml}</root>");
@@ -77,13 +93,8 @@ namespace DocGen.Parsing
                 for (int j = 0; j < types[i].GenericParameters.Count(); j++)
                 {
                     types[i].GenericParameters.ElementAt(j).Description =
-                        typeDocs.Elements("typeparam").FirstOrDefault(p =>
-                        {
-                            string? name = p.Attribute("name")?.Value;
-                            if (name == null) return false;
-                            return types[i].GenericParameters.ElementAt(j)
-                                .Name == name;
-                        })?.Value ?? string.Empty;
+                        FindElementValueByName(typeDocs, "typeparam",
+                            types[i].GenericParameters.ElementAt(j).Name);
                 }
 
                 // --------- Parse members ---------
@@ -106,6 +117,12 @@ namespace DocGen.Parsing
                     nameBuilder.Append(types[i].FullName);
                     nameBuilder.Append('.');
                     nameBuilder.Append(member.Name);
+
+                    if (member.GenericParameters != null &&
+                        member.GenericParameters.Count() > 0)
+                    {
+                        nameBuilder.Append('`' + member.GenericParameters.Count());
+                    }
                     
                     if (prefix == 'M')
                     {
@@ -121,11 +138,55 @@ namespace DocGen.Parsing
                                 nameBuilder.Append('{');
 
                                 foreach (System.Type genericParameter in genericParameters)
-                                    nameBuilder.Append(genericParameter.FullName);
+                                {
+                                    // If full name is null or empty, it's a reference to
+                                    // a generic parameter of the method or of the type
+                                    if (string.IsNullOrEmpty(genericParameter.FullName))
+                                    {
+                                        // Such references are represented in XML docs as
+                                        // `<member_typeparam_number>
+                                        // if it's a generic parameter of the member
+                                        // OR
+                                        // `<member_typeparams_count>+<type_typeparam_number> 
+                                        // if it's a generic parameter of the type
 
+                                        int index = -1;
+
+                                        // Search in generic parameters of the member first
+                                        // They're not null because it's a method or constructor
+                                        if (member.GenericParameters!.Count() > 0)
+                                        {
+                                            index = member.GenericParameters!
+                                                .Select(p => p.Name)
+                                                .ToList()
+                                                .IndexOf(genericParameter.Name);
+                                        }
+
+                                        // It's a generic parameter of the type
+                                        if (index < 0 &&
+                                            types[i].GenericParameters.Count() > 0)
+                                        {
+                                            index = member.GenericParameters!
+                                                .Select(p => p.Name)
+                                                .ToList()
+                                                .IndexOf(genericParameter.Name) +
+                                                member.GenericParameters!.Count();
+                                        }
+
+                                        if (index >= 0) nameBuilder.Append('`' + index);
+                                        // Falling back to Object if such generic parameter
+                                        // not found
+                                        else nameBuilder.Append("System.Object");
+                                    }
+                                    else  // Otherwise it's a hard-coded type reference
+                                        nameBuilder.Append(genericParameter.FullName);
+
+                                    nameBuilder.Append(',');
+                                }
+
+                                nameBuilder.Remove(nameBuilder.Length - 1, 1);
                                 nameBuilder.Append('}');
                             }
-
                             nameBuilder.Append(',');
                         }
 
@@ -162,13 +223,18 @@ namespace DocGen.Parsing
                         for (int k = 0; k < member.Parameters.Count(); k++)
                         {
                             member.Parameters.ElementAt(k).Description =
-                                memberDocs.Elements("param").FirstOrDefault(p =>
-                                {
-                                    string? name = p.Attribute("name")?.Value;
-                                    if (name == null) return false;
-                                    return member.Parameters.ElementAt(k)
-                                        .Name == name;
-                                })?.Value ?? string.Empty;
+                                FindElementValueByName(memberDocs, "param",
+                                    member.Parameters.ElementAt(k).Name);
+                        }
+                    }
+
+                    if (member.GenericParameters != null)
+                    {
+                        for (int k = 0; k < member.GenericParameters.Count(); k++)
+                        {
+                            member.GenericParameters.ElementAt(k).Description =
+                                FindElementValueByName(memberDocs, "typeparam",
+                                    member.GenericParameters.ElementAt(k).Name);
                         }
                     }
 
@@ -185,7 +251,7 @@ namespace DocGen.Parsing
 
                             var exception = new Exception();
 
-                            var type = System.Type.GetType(cref[2..]);
+                            var type = assembly.GetType(cref[2..]);
                             // If it cannot find type, we fall back to Exception
                             // (as specified in the definition of the Type property)
                             if (type != null) exception.Type = type;
@@ -203,7 +269,7 @@ namespace DocGen.Parsing
             return types;
         }
 
-        public void GetData(out Assembly assembly, out IEnumerable<Type> types)
+        public void Deconstruct(out Assembly assembly, out IEnumerable<Type> types)
         {
             assembly = this.assembly;
             types = this.types;
@@ -344,6 +410,34 @@ namespace DocGen.Parsing
             if (member is ConstructorInfo constructor) return constructor.DeclaringType;
 
             return null;
+        }
+
+        private IEnumerable<GenericParameter>? GetGenericParameters(MemberInfo member)
+        {
+            if (member is MethodInfo method)
+                return method.GetGenericArguments().Select(p => new GenericParameter
+                {
+                    Name = p.Name
+                });
+            else if (member is ConstructorInfo constructor)
+                return constructor.GetGenericArguments().Select(p => new GenericParameter
+                {
+                    Name = p.Name
+                });
+
+            return null;
+        }
+
+        // In root, searches for an element called searchFor with a name attribute with value compareTo
+        // and returns value of the element
+        private string FindElementValueByName(XElement root, string searchFor, string compareTo)
+        {
+            return root.Elements(searchFor).FirstOrDefault(p =>
+            {
+                string? name = p.Attribute("name")?.Value;
+                if (name == null) return false;
+                return name == compareTo;
+            })?.Value ?? string.Empty;
         }
 
         private string Combine(string? str1, string? str2)
