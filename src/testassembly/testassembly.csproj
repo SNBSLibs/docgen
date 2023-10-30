@@ -4,7 +4,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <AssemblyName>Test</AssemblyName>
+    <AssemblyName>testassembly</AssemblyName>
     <RootNamespace>Test</RootNamespace>
     <Title>DocGen test assembly</Title>
     <Authors>Ted Swenner</Authors>
