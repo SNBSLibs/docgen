@@ -59,7 +59,7 @@ namespace DocGen.Parsing
 
         private IEnumerable<Type> ParseFromStream(Stream stream)
         {
-            var reader = new StreamReader(stream);
+            using var reader = new StreamReader(stream);
             return Parse(reader.ReadToEnd());
         }
 
