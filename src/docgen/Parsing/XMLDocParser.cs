@@ -75,8 +75,11 @@ namespace DocGen.Parsing
                     .GetGenericArguments()?.Length ?? 0;
                 if (typeParamsCount > 0) name += '`' + typeParamsCount.ToString();
 
-                string? typeDocsXml = Process(
-                    (string)docs.XPathEvaluate($"//member[@name='T:{name}']"));
+                var navigator = docs.XPathEvaluate($"//member[@name='T:{name}']")
+                    as XPathNavigator;
+                if (navigator == null) continue;
+
+                string? typeDocsXml = Process(navigator.OuterXml);
                 if (typeDocsXml == null) continue;
                 // XElement.Parse won't parse a string that doesn't start with an XML element
                 var typeDocs = XElement.Parse($"<root>{typeDocsXml}</root>");
@@ -201,8 +204,11 @@ namespace DocGen.Parsing
                         }
                     }
 
-                    string? memberDocsXml = Process(
-                        (string)docs.XPathEvaluate($"//member[@name='{nameBuilder}']"));
+                    var navigator2 = docs.XPathEvaluate($"//member[@name='{nameBuilder}']")
+                        as XPathNavigator;
+                    if (navigator2 == null) continue;
+
+                    string? memberDocsXml = Process(navigator2.OuterXml);
                     if (memberDocsXml == null) continue;
                     var memberDocs = XElement.Parse($"<root>{memberDocsXml}</root>");
 
