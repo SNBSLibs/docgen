@@ -419,11 +419,6 @@ namespace DocGen.Parsing
                 {
                     Name = p.Name
                 });
-            else if (member is ConstructorInfo constructor)
-                return constructor.GetGenericArguments().Select(p => new GenericParameter
-                {
-                    Name = p.Name
-                });
 
             return null;
         }
