@@ -16,7 +16,8 @@ namespace DocGen.Parsing
         private Assembly assembly;
         private List<Type> types;
 
-        public XMLDocParser(Assembly assembly)
+        public XMLDocParser(Assembly assembly,
+            string? docs = null, string? file = null, Stream? stream = null)
         {
             this.assembly = assembly;
 
@@ -46,18 +47,23 @@ namespace DocGen.Parsing
                 foreach (var member in type.Members) member.Type = type;  // #5
                 return type;
             }).ToList();
+
+            if (docs != null) Parse(docs);
+            else if (file != null) ParseFromFile(file);
+            else if (stream != null) ParseFromStream(stream);
+            else throw new InvalidOperationException("You must specify at least one XML docs source");
         }
 
-        public IEnumerable<Type> ParseFromFile(string docsPath) =>
+        private IEnumerable<Type> ParseFromFile(string docsPath) =>
             Parse(File.ReadAllText(docsPath));
 
-        public IEnumerable<Type> ParseFromStream(Stream stream)
+        private IEnumerable<Type> ParseFromStream(Stream stream)
         {
             var reader = new StreamReader(stream);
             return Parse(reader.ReadToEnd());
         }
 
-        public IEnumerable<Type> Parse(string documentation)
+        private IEnumerable<Type> Parse(string documentation)
         {
             var docs = XDocument.Parse(documentation);
 
@@ -263,7 +269,7 @@ namespace DocGen.Parsing
             return types;
         }
 
-        public void GetData(out Assembly assembly, out IEnumerable<Type> types)
+        public void Deconstruct(out Assembly assembly, out IEnumerable<Type> types)
         {
             assembly = this.assembly;
             types = this.types;
