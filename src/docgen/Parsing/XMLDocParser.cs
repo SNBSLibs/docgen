@@ -7,6 +7,7 @@ using System.Xml.XPath;
 using DocGen.Entities;
 using Type = DocGen.Entities.Type;
 using Exception = DocGen.Entities.Exception;
+using System.Runtime.CompilerServices;
 
 namespace DocGen.Parsing
 {
@@ -24,29 +25,32 @@ namespace DocGen.Parsing
             // Construct the entities based on types that the assembly contains
             // We don't yet fill in properties connected with documentation
             // (they will be filled in in the Parse method)
-            types = assembly.GetTypes().Select(t => {
-                var type = new Type
-                {
-                    Name = t.Name,
-                    FullName = t.FullName ?? t.Name,
-                    GenericParameters = t.GetGenericArguments().Select(p => new GenericParameter
+            types = assembly.GetTypes()
+                // Filter out compiler-generated types
+                .Where(t => t.GetCustomAttribute(typeof(CompilerGeneratedAttribute)) == null)
+                .Select(t => {
+                    var type = new Type
                     {
-                        Name = p.Name
-                    }),
-                    Members = t.GetMembers().Select(m => new Member
-                    {
-                        // Replace ".ctor" with "#ctor", as it's stored in XML docs 
-                        Name = m.Name.Replace('.', '#'),
-                        Parameters = GetParameters(m),
-                        Kind = GetKind(m),
-                        ReturnType = GetReturnType(m),
-                        GenericParameters = GetGenericParameters(m)
-                    })
-                };
+                        Name = t.Name,
+                        FullName = t.FullName ?? t.Name,
+                        GenericParameters = t.GetGenericArguments().Select(p => new GenericParameter
+                        {
+                            Name = p.Name
+                        }),
+                        Members = t.GetMembers().Select(m => new Member
+                        {
+                            // Replace ".ctor" with "#ctor", as it's stored in XML docs 
+                            Name = m.Name.Replace('.', '#'),
+                            Parameters = GetParameters(m),
+                            Kind = GetKind(m),
+                            ReturnType = GetReturnType(m),
+                            GenericParameters = GetGenericParameters(m)
+                        })
+                    };
 
-                foreach (var member in type.Members) member.Type = type;  // #5
-                return type;
-            }).ToList();
+                    foreach (var member in type.Members) member.Type = type;  // #5
+                    return type;
+                }).ToList();
 
             if (docs != null) Parse(docs);
             else if (file != null) ParseFromFile(file);
