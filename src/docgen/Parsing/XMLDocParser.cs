@@ -20,6 +20,8 @@ namespace DocGen.Parsing
         public XMLDocParser(Assembly assembly,
             string? docs = null, string? file = null, Stream? stream = null)
         {
+            ArgumentNullException.ThrowIfNull(assembly, nameof(assembly));
+
             this.assembly = assembly;
 
             // Construct the entities based on types that the assembly contains
