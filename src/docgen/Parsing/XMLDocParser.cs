@@ -72,7 +72,7 @@ namespace DocGen.Parsing
 
         private IEnumerable<Type> Parse(string documentation)
         {
-            var docs = XDocument.Parse(documentation);
+            var docs = XDocument.Parse(Process(documentation)!);
 
             for (int i = 0; i < types.Count; i++)
             {
