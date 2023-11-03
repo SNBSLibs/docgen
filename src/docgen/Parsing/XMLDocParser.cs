@@ -76,14 +76,8 @@ namespace DocGen.Parsing
 
             for (int i = 0; i < types.Count; i++)
             {
-                var navigator = docs.XPathEvaluate($"//member[@name='T:{types[i].FullName}']")
-                    as XPathNavigator;
-                if (navigator == null) continue;
-
-                string? typeDocsXml = Process(navigator.OuterXml);
-                if (typeDocsXml == null) continue;
-                // XElement.Parse won't parse a string that doesn't start with an XML element
-                var typeDocs = XElement.Parse($"<root>{typeDocsXml}</root>");
+                XElement? typeDocs = docs.XPathSelectElement($"//member[@name='T:{types[i].FullName}']");
+                if (typeDocs == null) continue;
 
                 types[i].Summary = typeDocs.Element("summary")?.Value
                     ?? string.Empty;
@@ -205,13 +199,8 @@ namespace DocGen.Parsing
                         }
                     }
 
-                    var navigator2 = docs.XPathEvaluate($"//member[@name='{nameBuilder}']")
-                        as XPathNavigator;
-                    if (navigator2 == null) continue;
-
-                    string? memberDocsXml = Process(navigator2.OuterXml);
-                    if (memberDocsXml == null) continue;
-                    var memberDocs = XElement.Parse($"<root>{memberDocsXml}</root>");
+                    XElement? memberDocs = docs.XPathSelectElement($"//member[@name='{nameBuilder}']");
+                    if (memberDocs == null) continue;
 
                     member.Summary = memberDocs.Element("summary")?.Value
                         ?? string.Empty;
