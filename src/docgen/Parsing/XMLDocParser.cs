@@ -272,7 +272,7 @@ namespace DocGen.Parsing
         }
 
         // Transform "<c>"s to asterisk-surrounded content
-        // Reformat lists ("-+term+=description=all_the_rest"),
+        // Reformat lists ("-+term+^description^all_the_rest"),
         // paragraphs (%paragraph%),
         // code examples (%*example*%),
         // <see> references ($referenced_name$&cref_attribute&)
@@ -282,7 +282,7 @@ namespace DocGen.Parsing
             if (raw == null) return null;
 
             // Escaping
-            string result = Regex.Replace(raw, @"[\\*\-+=%$&]", m => "\\" + m.Value);
+            string result = Regex.Replace(raw, @"[\\*\-+\^%$&]", m => "\\" + m.Value);
 
             // Inline code
             result = result.Replace("<c>", "*");
@@ -308,7 +308,7 @@ namespace DocGen.Parsing
                     var term = item.Element("term");
                     var description = item.Element("description");
 
-                    listBuilder.AppendLine($"-+{term?.Value.Trim()}+={description?.Value.Trim()}=" +
+                    listBuilder.AppendLine($"-+{term?.Value.Trim()}+^{description?.Value.Trim()}^" +
                         // Also fetch text nodes that are direct children of the <item>
                         // and put them after term and description
                         string.Concat(item.Nodes().Where(n => n.NodeType == XmlNodeType.Text)
