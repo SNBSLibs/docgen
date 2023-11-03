@@ -21,6 +21,8 @@ namespace DocGen.Parsing
             string? docs = null, string? file = null, Stream? stream = null)
         {
             ArgumentNullException.ThrowIfNull(assembly, nameof(assembly));
+            if (docs == null && file == null && stream == null)
+                throw new InvalidOperationException("You must specify at least one XML docs source");
 
             this.assembly = assembly;
 
@@ -57,7 +59,6 @@ namespace DocGen.Parsing
             if (docs != null) Parse(docs);
             else if (file != null) ParseFromFile(file);
             else if (stream != null) ParseFromStream(stream);
-            else throw new InvalidOperationException("You must specify at least one XML docs source");
         }
 
         private IEnumerable<Type> ParseFromFile(string docsPath) =>
