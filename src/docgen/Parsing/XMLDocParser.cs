@@ -76,13 +76,7 @@ namespace DocGen.Parsing
 
             for (int i = 0; i < types.Count; i++)
             {
-                // Construct a string to look for in the docs
-                string name = types[i].FullName;
-                int typeParamsCount = assembly.GetType(types[i].FullName)?
-                    .GetGenericArguments()?.Length ?? 0;
-                if (typeParamsCount > 0) name += '`' + typeParamsCount.ToString();
-
-                var navigator = docs.XPathEvaluate($"//member[@name='T:{name}']")
+                var navigator = docs.XPathEvaluate($"//member[@name='T:{types[i].FullName}']")
                     as XPathNavigator;
                 if (navigator == null) continue;
 
