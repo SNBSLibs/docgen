@@ -8,6 +8,7 @@ using DocGen.Entities;
 using Type = DocGen.Entities.Type;
 using Exception = DocGen.Entities.Exception;
 using System.Runtime.CompilerServices;
+using System.Linq.Expressions;
 
 namespace DocGen.Parsing
 {
@@ -299,7 +300,10 @@ namespace DocGen.Parsing
             // Lists
             var document = XDocument.Parse(result);
 
-            foreach (var list in document.Descendants("list"))
+            // Eager load the lists because they will be
+            // disappearing as we reformat them
+            var lists = document.Descendants("list").ToArray();
+            foreach (var list in lists)
             {
                 var listBuilder = new StringBuilder();
 
@@ -321,7 +325,8 @@ namespace DocGen.Parsing
             }
 
             // "<see>"s
-            foreach (var see in document.Descendants("see"))
+            var sees = document.Descendants("see").ToArray();
+            foreach (var see in sees)
             {
                 string cref = see.Attribute("cref")!.Value;
 
@@ -340,8 +345,10 @@ namespace DocGen.Parsing
             }
 
             // Parameter and type parameter references
-            foreach (var reference in document.Descendants()
-                .Where(el => el.Name == "<paramref>" || el.Name == "typeparamref"))
+            var references = document.Descendants()
+                .Where(el => el.Name == "<paramref>" || el.Name == "typeparamref")
+                .ToArray();
+            foreach (var reference in references)
             {
                 string? name = reference.Attribute("name")?.Value;
                 if (name == null) continue;
