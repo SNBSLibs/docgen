@@ -297,10 +297,9 @@ namespace DocGen.Parsing
                 m => m.Value.Contains('/') ? "*%" : "%*");
 
             // Lists
-            // XElement.Parse won't parse a string that doesn't start with an XML element
-            var element = XElement.Parse($"<root>{result}</root>");
+            var document = XDocument.Parse(result);
 
-            foreach (var list in element.Descendants("list"))
+            foreach (var list in document.Descendants("list"))
             {
                 var listBuilder = new StringBuilder();
 
@@ -322,7 +321,7 @@ namespace DocGen.Parsing
             }
 
             // "<see>"s
-            foreach (var see in element.Descendants("see"))
+            foreach (var see in document.Descendants("see"))
             {
                 string cref = see.Attribute("cref")!.Value;
 
@@ -341,7 +340,7 @@ namespace DocGen.Parsing
             }
 
             // Parameter and type parameter references
-            foreach (var reference in element.Descendants()
+            foreach (var reference in document.Descendants()
                 .Where(el => el.Name == "<paramref>" || el.Name == "typeparamref"))
             {
                 string? name = reference.Attribute("name")?.Value;
@@ -351,7 +350,7 @@ namespace DocGen.Parsing
                 reference.Remove();
             }
 
-            string resultWithRoot = element.ToString();
+            string resultWithRoot = document.ToString();
             // Remove <root> and </root>
             result = resultWithRoot[6..^7];
 
