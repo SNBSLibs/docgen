@@ -346,7 +346,7 @@ namespace DocGen.Parsing
 
             // Parameter and type parameter references
             var references = document.Descendants()
-                .Where(el => el.Name == "<paramref>" || el.Name == "typeparamref")
+                .Where(el => el.Name == "paramref" || el.Name == "typeparamref")
                 .ToArray();
             foreach (var reference in references)
             {
