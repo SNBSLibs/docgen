@@ -330,11 +330,16 @@ namespace DocGen.Parsing
             {
                 string cref = see.Attribute("cref")!.Value;
 
-                // Fetch short name
-                // (from the last full stop before the first parenthesis to that parenthesis)
-                string tillParenthesis = cref[..cref.IndexOf('(')];
-                string shortName = tillParenthesis
-                    [(tillParenthesis.LastIndexOf('.') + 1)..];
+                string shortName;
+                int parenthesis = cref.IndexOf('(');
+                if (parenthesis >= 0)
+                {
+                    // Fetch short name
+                    // (from the last full stop before the first parenthesis to that parenthesis)
+                    string tillParenthesis = cref[..parenthesis];
+                    shortName = tillParenthesis[(tillParenthesis.LastIndexOf('.') + 1)..];
+                }
+                else shortName = cref[(cref.LastIndexOf('.') + 1)..];
 
                 // Only distinguish between types and members
                 // (all the rest is stored in MemberKind)
