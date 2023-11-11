@@ -137,7 +137,7 @@ namespace DocGen.Parsing
                         nameBuilder.Append('`' + member.GenericParameters.Count());
                     }
                     
-                    if (prefix == 'M')
+                    if (prefix == "M")
                     {
                         nameBuilder.Append('(');
 
