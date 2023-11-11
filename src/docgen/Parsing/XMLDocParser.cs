@@ -83,6 +83,7 @@ namespace DocGen.Parsing
                 var options = docs.Descendants("member")
                     .Where(m => m.Attribute("name")?.Value == $"T:{types[i].FullName}");
                 if (options.Count() == 1) typeDocs = options.Single();
+                else if (options.Count() < 1) typeDocs = null;
                 else
                 {
                     var exception = new AmbiguousMatchException
@@ -219,6 +220,7 @@ namespace DocGen.Parsing
                     var options2 = docs.Descendants("member")
                         .Where(m => m.Attribute("name")?.Value == nameBuilder.ToString());
                     if (options2.Count() == 1) memberDocs = options2.Single();
+                    else if (options2.Count() < 1) memberDocs = null;
                     else
                     {
                         var exception = new AmbiguousMatchException
