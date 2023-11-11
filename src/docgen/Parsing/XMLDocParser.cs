@@ -118,12 +118,12 @@ namespace DocGen.Parsing
 
                     var nameBuilder = new StringBuilder();
 
-                    char prefix = member.Kind switch
+                    string prefix = member.Kind switch
                     {
-                        MemberKind.Field => 'F',
-                        MemberKind.Event => 'E',
-                        MemberKind.Property => 'P',
-                        _ => 'M'
+                        MemberKind.Field => "F:",
+                        MemberKind.Event => "E:",
+                        MemberKind.Property => "P:",
+                        _ => "M:"
                     };
                     nameBuilder.Append(prefix);
 
