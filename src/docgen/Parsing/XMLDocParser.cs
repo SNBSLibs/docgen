@@ -73,11 +73,25 @@ namespace DocGen.Parsing
 
         private IEnumerable<Type> Parse(string documentation)
         {
+            string? temp = Process(documentation);
             var docs = XDocument.Parse(Process(documentation)!);
 
             for (int i = 0; i < types.Count; i++)
             {
-                XElement? typeDocs = docs.XPathSelectElement($"//member[@name='T:{types[i].FullName}']");
+                XElement? typeDocs;
+
+                var options = docs.Descendants("member")
+                    .Where(m => m.Attribute("name")?.Value == $"T:{types[i].FullName}");
+                if (options.Count() == 1) typeDocs = options.Single();
+                else
+                {
+                    var exception = new AmbiguousMatchException
+                        ($"Not exactly one <member> element in the docs matched {types[i].FullName}. See exception data for the matches (if any).");
+                    for (int j = 0; j < options.Count(); j++)
+                        exception.Data.Add(j, options.ElementAt(j));
+                    throw exception;
+                }
+
                 if (typeDocs == null) continue;
 
                 types[i].Summary = typeDocs.Element("summary")?.Value
@@ -200,7 +214,20 @@ namespace DocGen.Parsing
                         }
                     }
 
-                    XElement? memberDocs = docs.XPathSelectElement($"//member[@name='{nameBuilder}']");
+                    XElement? memberDocs;
+
+                    var options2 = docs.Descendants("member")
+                        .Where(m => m.Attribute("name")?.Value == nameBuilder.ToString());
+                    if (options2.Count() == 1) memberDocs = options2.Single();
+                    else
+                    {
+                        var exception = new AmbiguousMatchException
+                            ($"Not exactly one <member> element in the docs matched {nameBuilder}. See exception data for the matches (if any).");
+                        for (int k = 0; k < options2.Count(); k++)
+                            exception.Data.Add(k, options2.ElementAt(k));
+                        throw exception;
+                    }
+
                     if (memberDocs == null) continue;
 
                     member.Summary = memberDocs.Element("summary")?.Value
@@ -362,11 +389,7 @@ namespace DocGen.Parsing
                 reference.Remove();
             }
 
-            string resultWithRoot = document.ToString();
-            // Remove <root> and </root>
-            result = resultWithRoot[6..^7];
-
-            return result;
+            return document.ToString();
         }
 
         #region Helpers
