@@ -106,9 +106,16 @@ namespace DocGen.Parsing
 
                 for (int j = 0; j < types[i].GenericParameters.Count(); j++)
                 {
-                    types[i].GenericParameters.ElementAt(j).Description =
-                        FindElementValueByName(typeDocs, "typeparam",
-                            types[i].GenericParameters.ElementAt(j).Name);
+                    string description = FindElementValueByName(typeDocs, "typeparam",
+                        types[i].GenericParameters.ElementAt(j).Name);
+
+                    // types[i].GenericParameters.ElementAt(j).Description = value;
+                    // The above statement doesn't set description (?)
+                    types[i].GenericParameters = types[i].GenericParameters.Select((p, index) =>
+                    {
+                        if (index == j) p.Description = description;
+                        return p;
+                    }).ToList();
                 }
 
                 // --------- Parse members ---------
@@ -248,9 +255,14 @@ namespace DocGen.Parsing
                     {
                         for (int k = 0; k < member.Parameters.Count(); k++)
                         {
-                            member.Parameters.ElementAt(k).Description =
-                                FindElementValueByName(memberDocs, "param",
+                            string description = FindElementValueByName(memberDocs, "param",
                                     member.Parameters.ElementAt(k).Name);
+
+                            member.Parameters = member.Parameters.Select((p, index) =>
+                            {
+                                if (index == k) p.Description = description;
+                                return p;
+                            });
                         }
                     }
 
@@ -258,9 +270,14 @@ namespace DocGen.Parsing
                     {
                         for (int k = 0; k < member.GenericParameters.Count(); k++)
                         {
-                            member.GenericParameters.ElementAt(k).Description =
-                                FindElementValueByName(memberDocs, "typeparam",
+                            string description = FindElementValueByName(memberDocs, "typeparam",
                                     member.GenericParameters.ElementAt(k).Name);
+
+                            member.GenericParameters = member.GenericParameters.Select((p, index) =>
+                            {
+                                if (index == k) p.Description = description;
+                                return p;
+                            }).ToList();
                         }
                     }
 
