@@ -106,9 +106,16 @@ namespace DocGen.Parsing
 
                 for (int j = 0; j < types[i].GenericParameters.Count(); j++)
                 {
-                    types[i].GenericParameters.ElementAt(j).Description =
-                        FindElementValueByName(typeDocs, "typeparam",
-                            types[i].GenericParameters.ElementAt(j).Name);
+                    string value = FindElementValueByName(typeDocs, "typeparam",
+                        types[i].GenericParameters.ElementAt(j).Name);
+
+                    // types[i].GenericParameters.ElementAt(j).Description = value;
+                    // The above statement doesn't set description (?)
+                    types[i].GenericParameters = types[i].GenericParameters.Select((p, index) =>
+                    {
+                        if (index == j) p.Description = value;
+                        return p;
+                    }).ToList();
                 }
 
                 // --------- Parse members ---------
