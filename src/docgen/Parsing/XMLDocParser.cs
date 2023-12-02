@@ -155,7 +155,7 @@ namespace DocGen.Parsing
                                 ? parameter.Type.GetGenericTypeDefinition().FullName
                                 : parameter.Type.FullName);
 
-                            var genericParameters = parameter.Type.GetGenericArguments();
+                            var genericParameters = parameter.Type.GenericTypeArguments;
                             if (genericParameters.Length > 0)
                             {
                                 nameBuilder.Append('{');
@@ -167,10 +167,10 @@ namespace DocGen.Parsing
                                     if (string.IsNullOrEmpty(genericParameter.FullName))
                                     {
                                         // Such references are represented in XML docs as
-                                        // `<member_typeparam_number>
+                                        // ``<member_typeparam_number>
                                         // if it's a generic parameter of the member
                                         // OR
-                                        // `<member_typeparams_count>+<type_typeparam_number> 
+                                        // `<type_typeparam_number> 
                                         // if it's a generic parameter of the type
 
                                         int index = -1;
@@ -185,18 +185,22 @@ namespace DocGen.Parsing
                                                 .IndexOf(genericParameter.Name);
                                         }
 
-                                        // It's a generic parameter of the type
-                                        if (index < 0 &&
-                                            types[i].GenericParameters.Count() > 0)
+                                        if (index >= 0)
+                                            nameBuilder.Append("``" + index);
+                                        else
                                         {
-                                            index = member.GenericParameters!
-                                                .Select(p => p.Name)
-                                                .ToList()
-                                                .IndexOf(genericParameter.Name) +
-                                                member.GenericParameters!.Count();
+                                            // It's a generic parameter of the type
+                                            if (types[i].GenericParameters.Count() > 0)
+                                            {
+                                                index = member.GenericParameters!
+                                                    .Select(p => p.Name)
+                                                    .ToList()
+                                                    .IndexOf(genericParameter.Name) +
+                                                    member.GenericParameters!.Count();
+                                            }
                                         }
 
-                                        if (index >= 0) nameBuilder.Append('`' + index);
+                                        if (index >= 0) nameBuilder.Append("`" + index);
                                         // Falling back to Object if such generic parameter
                                         // not found
                                         else nameBuilder.Append("System.Object");
