@@ -142,10 +142,10 @@ namespace DocGen.Parsing
                     if (member.GenericParameters != null &&
                         member.GenericParameters.Count() > 0)
                     {
-                        nameBuilder.Append('`' + member.GenericParameters.Count());
+                        nameBuilder.Append("`" + member.GenericParameters.Count());
                     }
                     
-                    if (prefix == "M")
+                    if (prefix == "M:")
                     {
                         nameBuilder.Append('(');
 
@@ -245,7 +245,7 @@ namespace DocGen.Parsing
                     // Return value consists of <returns> and <value>
                     string? returns = memberDocs.Element("returns")?.Value;
                     string? value = memberDocs.Element("value")?.Value;
-                    member.ReturnValue = Combine(returns, value);
+                    member.ReturnDescription = Combine(returns, value);
 
                     string? memberRemarks = memberDocs.Element("remarks")?.Value;
                     string? memberSeealso = memberDocs.Element("seealso")?.Value;
