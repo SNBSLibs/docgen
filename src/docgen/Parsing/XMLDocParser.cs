@@ -151,7 +151,9 @@ namespace DocGen.Parsing
 
                         foreach (var parameter in member.Parameters!)
                         {
-                            nameBuilder.Append(parameter.Type.FullName);
+                            nameBuilder.Append(parameter.Type.IsGenericType
+                                ? parameter.Type.GetGenericTypeDefinition().FullName
+                                : parameter.Type.FullName);
 
                             var genericParameters = parameter.Type.GetGenericArguments();
                             if (genericParameters.Length > 0)
