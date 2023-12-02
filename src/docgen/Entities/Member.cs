@@ -9,11 +9,11 @@
 
         public string Summary { get; internal set; } = string.Empty;
 
-        public IEnumerable<Parameter>? Parameters { get; internal set; }
+        public Parameter[]? Parameters { get; internal set; }
 
-        public IEnumerable<Exception>? Exceptions { get; internal set; }
+        public Exception[]? Exceptions { get; internal set; }
 
-        public IEnumerable<GenericParameter>? GenericParameters { get; internal set; }
+        public GenericParameter[]? GenericParameters { get; internal set; }
 
         public string? ReturnDescription { get; internal set; } = string.Empty;
 

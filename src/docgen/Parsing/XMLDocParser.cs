@@ -41,7 +41,7 @@ namespace DocGen.Parsing
                         GenericParameters = t.GetGenericArguments().Select(p => new GenericParameter
                         {
                             Name = p.Name
-                        }),
+                        }).ToArray(),
                         Members = t.GetMembers().Select(m => new Member
                         {
                             // Replace ".ctor" with "#ctor", as it's stored in XML docs 
@@ -50,7 +50,7 @@ namespace DocGen.Parsing
                             Kind = GetKind(m),
                             ReturnType = GetReturnType(m),
                             GenericParameters = GetGenericParameters(m)
-                        })
+                        }).ToArray()
                     };
 
                     foreach (var member in type.Members) member.Type = type;  // #5
@@ -108,20 +108,13 @@ namespace DocGen.Parsing
                 {
                     string description = FindElementValueByName(typeDocs, "typeparam",
                         types[i].GenericParameters.ElementAt(j).Name);
-
-                    // types[i].GenericParameters.ElementAt(j).Description = value;
-                    // The above statement doesn't set description (?)
-                    types[i].GenericParameters = types[i].GenericParameters.Select((p, index) =>
-                    {
-                        if (index == j) p.Description = description;
-                        return p;
-                    }).ToList();
+                    types[i].GenericParameters[j].Description = description;
                 }
 
                 // --------- Parse members ---------
                 for (int j = 0; j < types[i].Members.Count(); j++)
                 {
-                    Member member = types[i].Members.ElementAt(j);
+                    Member member = types[i].Members[j];
                     if (member.Kind == MemberKind.Unknown) continue;
 
                     var nameBuilder = new StringBuilder();
@@ -268,12 +261,7 @@ namespace DocGen.Parsing
                         {
                             string description = FindElementValueByName(memberDocs, "param",
                                     member.Parameters.ElementAt(k).Name);
-
-                            member.Parameters = member.Parameters.Select((p, index) =>
-                            {
-                                if (index == k) p.Description = description;
-                                return p;
-                            });
+                            member.Parameters[k].Description = description;
                         }
                     }
 
@@ -283,12 +271,7 @@ namespace DocGen.Parsing
                         {
                             string description = FindElementValueByName(memberDocs, "typeparam",
                                     member.GenericParameters.ElementAt(k).Name);
-
-                            member.GenericParameters = member.GenericParameters.Select((p, index) =>
-                            {
-                                if (index == k) p.Description = description;
-                                return p;
-                            }).ToList();
+                            member.GenericParameters[k].Description = description;
                         }
                     }
 
@@ -315,7 +298,7 @@ namespace DocGen.Parsing
                             exceptions.Add(exception);
                         }
 
-                        member.Exceptions = exceptions;
+                        member.Exceptions = exceptions.ToArray();
                     }
                 }
             }
@@ -423,7 +406,7 @@ namespace DocGen.Parsing
         }
 
         #region Helpers
-        private IEnumerable<Parameter>? GetParameters(MemberInfo member)
+        private Parameter[]? GetParameters(MemberInfo member)
         {
             if (member.MemberType != MemberTypes.Method &&
                 member.MemberType != MemberTypes.Constructor) return null;
@@ -435,7 +418,7 @@ namespace DocGen.Parsing
                 {
                     Name = p.Name ?? "param",  // This is the default name for a parameter
                     Type = p.ParameterType
-                });
+                }).ToArray();
             } else  // The member is a constructor
             {
                 var ctor = (ConstructorInfo)member;
@@ -444,7 +427,7 @@ namespace DocGen.Parsing
                     Name = p.Name ?? "param",
                     Type = p.ParameterType,
                     IsReference = p.IsOut || p.ParameterType.IsByRef
-                });
+                }).ToArray();
             }
         }
 
@@ -472,13 +455,13 @@ namespace DocGen.Parsing
             return null;
         }
 
-        private IEnumerable<GenericParameter>? GetGenericParameters(MemberInfo member)
+        private GenericParameter[]? GetGenericParameters(MemberInfo member)
         {
             if (member is MethodInfo method)
                 return method.GetGenericArguments().Select(p => new GenericParameter
                 {
                     Name = p.Name
-                });
+                }).ToArray();
 
             return null;
         }
