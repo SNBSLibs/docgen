@@ -87,7 +87,7 @@ namespace DocGen.Parsing
                 else
                 {
                     var exception = new AmbiguousMatchException
-                        ($"Not exactly one <member> element in the docs matched {types[i].FullName}. See exception data for the matches (if any).");
+                        ($"Not exactly one <member> element in the docs matched {types[i].FullName}. See exception data for the matches.");
                     for (int j = 0; j < options.Count(); j++)
                         exception.Data.Add(j, options.ElementAt(j));
                     throw exception;
@@ -242,7 +242,7 @@ namespace DocGen.Parsing
                     else
                     {
                         var exception = new AmbiguousMatchException
-                            ($"Not exactly one <member> element in the docs matched {nameBuilder}. See exception data for the matches (if any).");
+                            ($"Not exactly one <member> element in the docs matched {nameBuilder}. See exception data for the matches.");
                         for (int k = 0; k < options2.Count(); k++)
                             exception.Data.Add(k, options2.ElementAt(k));
                         throw exception;
