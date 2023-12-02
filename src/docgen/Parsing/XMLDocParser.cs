@@ -151,9 +151,14 @@ namespace DocGen.Parsing
 
                         foreach (var parameter in member.Parameters!)
                         {
-                            nameBuilder.Append(parameter.Type.IsGenericType
-                                ? parameter.Type.GetGenericTypeDefinition().FullName
-                                : parameter.Type.FullName);
+                            string fullName;
+                            if (parameter.Type.IsGenericType)
+                            {
+                                fullName = parameter.Type.GetGenericTypeDefinition().FullName!;
+                                fullName = fullName[..fullName.IndexOf('`')];
+                            }
+                            else fullName = parameter.Type.FullName!;
+                            nameBuilder.Append(fullName);
 
                             var genericParameters = parameter.Type.GenericTypeArguments;
                             if (genericParameters.Length > 0)
@@ -198,12 +203,12 @@ namespace DocGen.Parsing
                                                     .IndexOf(genericParameter.Name) +
                                                     member.GenericParameters!.Count();
                                             }
-                                        }
 
-                                        if (index >= 0) nameBuilder.Append("`" + index);
-                                        // Falling back to Object if such generic parameter
-                                        // not found
-                                        else nameBuilder.Append("System.Object");
+                                            if (index >= 0) nameBuilder.Append("`" + index);
+                                            // Falling back to Object if such generic parameter
+                                            // not found
+                                            else nameBuilder.Append("System.Object");
+                                        }
                                     }
                                     else  // Otherwise it's a hard-coded type reference
                                         nameBuilder.Append(genericParameter.FullName);
