@@ -54,7 +54,46 @@ namespace DocGen.Parsing
                         }).ToArray()
                     };
 
-                    foreach (var member in type.Members) member.Type = type;  // #5
+                    for (int i = 0; i < type.Members.Length; i++)
+                    {
+                        // Remove methods like get_AProperty or add_AnEvent
+                        // Only leave the corresponding properties/events
+                        if (
+                            type.Members[i].Name.StartsWith("get_") ||
+                            type.Members[i].Name.StartsWith("set_") ||
+                            type.Members[i].Name.StartsWith("add_") ||
+                            type.Members[i].Name.StartsWith("remove_")
+                        )
+                        {
+                            string accessor = type.Members[i].Name[
+                                ..type.Members[i].Name.IndexOf('_')
+                            ];
+                            string restOfName = type.Members[i].Name[
+                                (type.Members[i].Name.IndexOf('_') + 1)..
+                            ];
+                            if (
+                                type.Members.Any(m =>
+                                    // Wasn't m removed?
+                                    m != null &&
+                                    m.Name == restOfName &&
+                                    // Methods like set_AProperty are allowed
+                                    // if the corresponding property doesn't have 
+                                    // a "set" accessor
+                                    (m.Accessors?.Contains(accessor) ?? false))
+                            )
+                                // Removed methods are assigned to null first
+                                type.Members[i] = null!;
+                        }
+
+                        if (type.Members[i] != null)
+                            type.Members[i].Type = type;  // #5
+                    }
+
+                    // Filter out removed methods
+                    type.Members = type.Members
+                        .Where(m => m != null)
+                        .ToArray();
+
                     return type;
                 }).ToList();
 
