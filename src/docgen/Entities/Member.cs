@@ -19,6 +19,9 @@
 
         public System.Type? ReturnType { get; internal set; }
 
+        // Properties and events have accessors like "get" or "remove"
+        public string[]? Accessors { get; internal set; }
+
         public string Notes { get; internal set; } = string.Empty;
 
         public Type? Type { get; internal set; }  // Null means the type is unknown

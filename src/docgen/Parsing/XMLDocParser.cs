@@ -46,6 +46,7 @@ namespace DocGen.Parsing
                         {
                             // Replace ".ctor" with "#ctor", as it's stored in XML docs 
                             Name = m.Name.Replace('.', '#'),
+                            Accessors = GetAccessors(m),
                             Parameters = GetParameters(m),
                             Kind = GetKind(m),
                             ReturnType = GetReturnType(m),
@@ -406,6 +407,23 @@ namespace DocGen.Parsing
         }
 
         #region Helpers
+        private string[] GetAccessors(MemberInfo member)
+        {
+            if (member.MemberType != MemberTypes.Property &&
+                member.MemberType != MemberTypes.Event) return null;
+
+            if (member.MemberType == MemberTypes.Property)
+            {
+                var property = (PropertyInfo)member;
+                return property.GetAccessors(false)
+                    .Select(a => a.Name)
+                    .ToArray();
+            } 
+            // If the member is not a property, it is an event
+            // Events always have "add" and "remove" accessors
+            else return new string[] { "add", "remove" };
+        }
+
         private Parameter[]? GetParameters(MemberInfo member)
         {
             if (member.MemberType != MemberTypes.Method &&
