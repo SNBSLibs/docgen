@@ -5,7 +5,7 @@
     [Serializable]
     public class Exception
     {
-        public System.Type Type { get; internal set; } = typeof(Exception);
+        public System.Type Type { get; internal set; } = typeof(System.Exception);
 
         public string ThrownOn { get; internal set; } = string.Empty;
     }
