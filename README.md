@@ -10,6 +10,7 @@ This project has not yet been released (although there's a pre-release), so we h
 using System.Reflection;
 using DocGen.Parsing;
 using Type = DocGen.Entities.Type;
+using static System.Console;
 
 WriteLine("Starting\n");
 
