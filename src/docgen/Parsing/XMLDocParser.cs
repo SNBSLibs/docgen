@@ -287,15 +287,11 @@ namespace DocGen.Parsing
                             string? cref = element.Attribute("cref")?.Value;
                             if (cref == null) continue;
 
-                            var exception = new Exception();
-
-                            var type = assembly.GetType(cref[2..]);
-                            // If it cannot find type, we fall back to Exception
-                            // (as specified in the definition of the Type property)
-                            if (type != null) exception.Type = type;
-
-                            exception.ThrownOn = element.Value ?? string.Empty;
-
+                            var exception = new Exception
+                            {
+                                Type = cref[2..],
+                                ThrownOn = element.Value ?? string.Empty
+                            };
                             exceptions.Add(exception);
                         }
 
@@ -407,7 +403,7 @@ namespace DocGen.Parsing
         }
 
         #region Helpers
-        private string[] GetAccessors(MemberInfo member)
+        private string[]? GetAccessors(MemberInfo member)
         {
             if (member.MemberType != MemberTypes.Property &&
                 member.MemberType != MemberTypes.Event) return null;
@@ -416,7 +412,7 @@ namespace DocGen.Parsing
             {
                 var property = (PropertyInfo)member;
                 return property.GetAccessors(false)
-                    .Select(a => a.Name)
+                    .Select(a => a.Name[..a.Name.IndexOf('_')])
                     .ToArray();
             } 
             // If the member is not a property, it is an event
