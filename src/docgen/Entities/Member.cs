@@ -9,15 +9,18 @@
 
         public string Summary { get; internal set; } = string.Empty;
 
-        public IEnumerable<GenericParameter>? GenericParameters { get; internal set; }
+        public Parameter[]? Parameters { get; internal set; }
 
-        public IEnumerable<Parameter>? Parameters { get; internal set; }
+        public Exception[]? Exceptions { get; internal set; }
 
-        public IEnumerable<Exception>? Exceptions { get; internal set; }
+        public GenericParameter[]? GenericParameters { get; internal set; }
 
-        public string? ReturnValue { get; internal set; } = string.Empty;
+        public string? ReturnDescription { get; internal set; } = string.Empty;
 
         public System.Type? ReturnType { get; internal set; }
+
+        // Properties and events have accessors like "get" or "remove"
+        public string[]? Accessors { get; internal set; }
 
         public string Notes { get; internal set; } = string.Empty;
 

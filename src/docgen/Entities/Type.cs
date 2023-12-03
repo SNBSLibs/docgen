@@ -11,12 +11,12 @@
 
         public string Summary { get; internal set; } = string.Empty;
 
-        public IEnumerable<GenericParameter> GenericParameters { get; internal set; }
-            = Enumerable.Empty<GenericParameter>();
+        public GenericParameter[] GenericParameters { get; internal set; }
+            = new GenericParameter[] { };
 
         public string Notes { get; internal set; } = string.Empty;
 
-        public IEnumerable<Member> Members { get; internal set; }
-            = Enumerable.Empty<Member>();
+        public Member[] Members { get; internal set; }
+            = new Member[] { };
     }
 }
