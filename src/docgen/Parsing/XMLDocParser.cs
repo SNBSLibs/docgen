@@ -31,6 +31,7 @@ namespace DocGen.Parsing
             // We don't yet fill in properties connected with documentation
             // (they will be filled in in the Parse method)
             types = assembly.GetTypes()
+                .Where(t => t.IsVisible)
                 // Filter out compiler-generated types
                 .Where(t => t.GetCustomAttribute(typeof(CompilerGeneratedAttribute)) == null)
                 .Select(t => {
