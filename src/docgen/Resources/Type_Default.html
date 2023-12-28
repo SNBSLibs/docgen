@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <!-- It's preferable to save Bootstrap locally -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+        
+        <title>{FullName}</title>
+    </head>
+    <body>
+        <main class="container-fluid">
+            <h1><code>(FullName)</code></h1>
+            !Summary{<p class="lead">(Summary)</p>}
+
+            !GenericParameters{
+                <h4>Generic parameters</h4>
+                <ul>
+                    *GenericParameters{<li><code>(Name)</code> (Description)</li>}
+                </ul>
+            }
+
+            !Notes{<p>(Notes)</p>}
+
+            <hr/>
+
+            <h2>Members</h2>
+
+            ?Members{<p>No members.</p>}
+
+            *Members{
+                <h3><code>(Name)</code> \((-Kind)\)</h3>
+                !Summary{<p class="lead">(Summary)</p>}
+
+                !GenericParameters{
+                    <h4>Generic parameters</h4>
+                    <ul>
+                        *GenericParameters{<li><code>(Name)</code> (Description)</li>}
+                    </ul>    
+                }
+
+                !Parameters{
+                    <h4>Parameters</h4>
+                    <ul>
+                        *Parameters{<li><code>(Type) (Name)</code>!IsReference{ \(reference\)} (Description)</li>}
+                    </ul>
+                }
+
+                !Exceptions{
+                    <h4>Possible exceptions</h4>
+                    <ul>
+                        *Exceptions{<li><code>(Type)</code> (ThrownOn)</li>}
+                    </ul>
+                }
+
+                !ReturnType{
+                    <strong>Returns:</strong>
+                    <code>(ReturnType)</code>
+                    (ReturnDescription)
+                }
+
+                !Accessors{
+                    <strong>Accessors:</strong>
+                    (#Accessors)
+                }
+
+                !Notes{<p>(Notes)</p>}
+            }
+        </main>
+    </body>
+</html>
