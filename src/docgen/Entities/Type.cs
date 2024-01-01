@@ -5,7 +5,7 @@
     [Serializable]
     public class Type
     {
-        internal string FullName { get; set; } = string.Empty;
+        public string FullName { get; set; } = string.Empty;
 
         public string Name { get; internal set; } = string.Empty;
 
