@@ -1,6 +1,6 @@
 ﻿namespace Test
 {
-    internal class AnotherTestClass
+    public class AnotherTestClass
     {
 #pragma warning disable CS8618
         public AnotherTestClass(Type type) { }
