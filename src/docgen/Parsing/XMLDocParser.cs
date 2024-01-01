@@ -15,8 +15,8 @@ namespace DocGen.Parsing
     // This class parses XML documentation into the entities
     public static class XMLDocParser
     {
-        private static Assembly assembly;
-        private static List<Type> types;
+        // Always initialized when the Parse method is called
+        private static List<Type> types = null!;
 
         public static IEnumerable<Type> Parse(Assembly assembly,
             string? docs = null, string? file = null, Stream? stream = null)
@@ -24,8 +24,6 @@ namespace DocGen.Parsing
             ArgumentNullException.ThrowIfNull(assembly, nameof(assembly));
             if (docs == null && file == null && stream == null)
                 throw new InvalidOperationException("You must specify at least one XML docs source");
-
-            XMLDocParser.assembly = assembly;
 
             // Construct the entities based on types that the assembly contains
             // We don't yet fill in properties connected with documentation
