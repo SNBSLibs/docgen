@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
-using NUnit.Framework;
 using DocGen.Entities;
 using DocGen.Parsing;
+using Type = DocGen.Entities.Type;
 
 namespace DocGen.Tests
 {
@@ -124,7 +124,7 @@ namespace DocGen.Tests
 
         // Initialized in the set-up method before each test
         // So we can assume that null never evaluates to null xD
-        private XMLDocParser parser = null!;
+        private IEnumerable<Type> types = null!;
 
         [SetUp]
         public void SetUp(TestContext context)
@@ -141,7 +141,7 @@ namespace DocGen.Tests
             if (test == null)
                 throw new InvalidOperationException("Cannot find the test assembly");
 
-            parser = new(test);
+            types = XMLDocParser.Parse(test, docs: docs);
         }
     }
 }
