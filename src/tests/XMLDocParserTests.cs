@@ -23,7 +23,7 @@ namespace DocGen.Tests
                         <typeparam name="T2">Another generic parameter.</typeparam>
                         <remarks>
                         It is used to test the DocGen library.
-
+                        
                         <typeparamref name="T1"/> is a very nice generic parameter.
                         </remarks>
                         <seealso>
@@ -125,9 +125,11 @@ namespace DocGen.Tests
         // Initialized in the set-up method before each test
         // So we can assume that null never evaluates to null xD
         private IEnumerable<Type> types = null!;
+        // Added to ensure that testassembly is referenced
+        private Test.AnotherTestClass test = null!;
 
         [SetUp]
-        public void SetUp(TestContext context)
+        public void SetUp()
         {
             var references = Assembly
                 .GetExecutingAssembly()
@@ -142,6 +144,36 @@ namespace DocGen.Tests
                 throw new InvalidOperationException("Cannot find the test assembly");
 
             types = XMLDocParser.Parse(test, docs: docs);
+        }
+
+        [Test]
+        public void CanFetchTypeSummary()
+        {
+            var type = types.Single(t => t.Name == "AnotherTestClass");
+            string summary = "A nice little class.";
+
+            Assert.That(type.Summary, Is.EqualTo(summary));
+        }
+
+        [Test]
+        public void CanFetchTypeNotes()
+        {
+            var type = types.Single(t => t.Name == "TestClass`2");
+            string notes =
+                "It is used to test the DocGen library.\n\n*T1* is a very nice generic parameter.\n\nhttps://github.com/SNBSLibs/docgen";
+
+            Assert.That(type.Notes, Is.EqualTo(notes));
+        }
+
+        [Test]
+        public void CanFetchTypeGenericParameters()
+        {
+            var type = types.Single(t => t.Name == "TestClass`2");
+
+            Assert.That(type.GenericParameters[0].Name, Is.EqualTo("T1"));
+            Assert.That(type.GenericParameters[0].Description, Is.EqualTo("A generic parameter."));
+            Assert.That(type.GenericParameters[1].Name, Is.EqualTo("T2"));
+            Assert.That(type.GenericParameters[1].Description, Is.EqualTo("Another generic parameter."));
         }
     }
 }
