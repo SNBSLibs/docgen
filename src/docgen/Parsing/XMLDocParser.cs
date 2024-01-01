@@ -1,14 +1,12 @@
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
-using System.Xml.XPath;
 using DocGen.Entities;
-using Type = DocGen.Entities.Type;
 using Exception = DocGen.Entities.Exception;
-using System.Runtime.CompilerServices;
-using System.Linq.Expressions;
+using Type = DocGen.Entities.Type;
 
 namespace DocGen.Parsing
 {
@@ -137,20 +135,22 @@ namespace DocGen.Parsing
 
                 if (typeDocs == null) continue;
 
-                types[i].Summary = typeDocs.Element("summary")?.Value
-                    ?? string.Empty;
+                types[i].Summary = RemoveIndents((typeDocs.Element("summary")?.Value
+                    ?? string.Empty).Trim())!;
 
                 // Notes consist of <remarks> and <seealso>
                 // If they both exist, their contents are separated with two new lines
-                string? remarks = typeDocs.Element("remarks")?.Value;
-                string? seealso = typeDocs.Element("seealso")?.Value;
+                string? remarks =
+                    RemoveIndents(typeDocs.Element("remarks")?.Value.Trim());
+                string? seealso =
+                    RemoveIndents(typeDocs.Element("seealso")?.Value.Trim());
                 types[i].Notes = Combine(remarks, seealso);
 
                 for (int j = 0; j < types[i].GenericParameters.Count(); j++)
                 {
                     string description = FindElementValueByName(typeDocs, "typeparam",
-                        types[i].GenericParameters.ElementAt(j).Name);
-                    types[i].GenericParameters[j].Description = description;
+                        types[i].GenericParameters.ElementAt(j).Name).Trim();
+                    types[i].GenericParameters[j].Description = RemoveIndents(description)!;
                 }
 
                 // --------- Parse members ---------
@@ -285,16 +285,20 @@ namespace DocGen.Parsing
 
                     if (memberDocs == null) continue;
 
-                    member.Summary = memberDocs.Element("summary")?.Value
-                        ?? string.Empty;
+                    member.Summary = RemoveIndents((memberDocs.Element("summary")?.Value
+                        ?? string.Empty).Trim())!;
 
                     // Return value consists of <returns> and <value>
-                    string? returns = memberDocs.Element("returns")?.Value;
-                    string? value = memberDocs.Element("value")?.Value;
+                    string? returns =
+                        RemoveIndents(memberDocs.Element("returns")?.Value.Trim());
+                    string? value =
+                        RemoveIndents(memberDocs.Element("value")?.Value.Trim());
                     member.ReturnDescription = Combine(returns, value);
 
-                    string? memberRemarks = memberDocs.Element("remarks")?.Value;
-                    string? memberSeealso = memberDocs.Element("seealso")?.Value;
+                    string? memberRemarks =
+                        RemoveIndents(memberDocs.Element("remarks")?.Value.Trim());
+                    string? memberSeealso =
+                        RemoveIndents(memberDocs.Element("seealso")?.Value.Trim());
                     member.Notes = Combine(memberRemarks, memberSeealso);
 
                     if (member.Parameters != null)
@@ -302,8 +306,8 @@ namespace DocGen.Parsing
                         for (int k = 0; k < member.Parameters.Count(); k++)
                         {
                             string description = FindElementValueByName(memberDocs, "param",
-                                    member.Parameters.ElementAt(k).Name);
-                            member.Parameters[k].Description = description;
+                                    member.Parameters.ElementAt(k).Name).Trim();
+                            member.Parameters[k].Description = RemoveIndents(description)!;
                         }
                     }
 
@@ -312,8 +316,8 @@ namespace DocGen.Parsing
                         for (int k = 0; k < member.GenericParameters.Count(); k++)
                         {
                             string description = FindElementValueByName(memberDocs, "typeparam",
-                                    member.GenericParameters.ElementAt(k).Name);
-                            member.GenericParameters[k].Description = description;
+                                    member.GenericParameters.ElementAt(k).Name).Trim();
+                            member.GenericParameters[k].Description = RemoveIndents(description)!;
                         }
                     }
 
@@ -331,7 +335,7 @@ namespace DocGen.Parsing
                             var exception = new Exception
                             {
                                 Type = cref[2..],
-                                ThrownOn = element.Value ?? string.Empty
+                                ThrownOn = RemoveIndents(element.Value.Trim()) ?? string.Empty
                             };
                             exceptions.Add(exception);
                         }
@@ -538,6 +542,10 @@ namespace DocGen.Parsing
             else
                 return $"{str1}\n\n{str2}";
         }
+
+        private static string? RemoveIndents(string? text) =>
+            (text == null) ? null : Regex.Replace(text,
+                @"^[\t ]+", string.Empty, RegexOptions.Multiline);
         #endregion
     }
 }
