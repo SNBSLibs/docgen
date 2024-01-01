@@ -13,19 +13,19 @@ using System.Linq.Expressions;
 namespace DocGen.Parsing
 {
     // This class parses XML documentation into the entities
-    public class XMLDocParser
+    public static class XMLDocParser
     {
-        private Assembly assembly;
-        private List<Type> types;
+        private static Assembly assembly;
+        private static List<Type> types;
 
-        public XMLDocParser(Assembly assembly,
+        public static IEnumerable<Type> Parse(Assembly assembly,
             string? docs = null, string? file = null, Stream? stream = null)
         {
             ArgumentNullException.ThrowIfNull(assembly, nameof(assembly));
             if (docs == null && file == null && stream == null)
                 throw new InvalidOperationException("You must specify at least one XML docs source");
 
-            this.assembly = assembly;
+            XMLDocParser.assembly = assembly;
 
             // Construct the entities based on types that the assembly contains
             // We don't yet fill in properties connected with documentation
@@ -98,21 +98,24 @@ namespace DocGen.Parsing
                     return type;
                 }).ToList();
 
-            if (docs != null) Parse(docs);
-            else if (file != null) ParseFromFile(file);
-            else if (stream != null) ParseFromStream(stream);
+            if (docs != null) return ParseFromText(docs);
+            else if (file != null) return ParseFromFile(file);
+            else if (stream != null) return ParseFromStream(stream);
+            // If docs, file and stream are all null, there will be an exception at line 26
+            // So the following line won't execute
+            else return null!;
         }
 
-        private IEnumerable<Type> ParseFromFile(string docsPath) =>
-            Parse(File.ReadAllText(docsPath));
+        private static IEnumerable<Type> ParseFromFile(string docsPath) =>
+            ParseFromText(File.ReadAllText(docsPath));
 
-        private IEnumerable<Type> ParseFromStream(Stream stream)
+        private static IEnumerable<Type> ParseFromStream(Stream stream)
         {
             using var reader = new StreamReader(stream);
-            return Parse(reader.ReadToEnd());
+            return ParseFromText(reader.ReadToEnd());
         }
 
-        private IEnumerable<Type> Parse(string documentation)
+        private static IEnumerable<Type> ParseFromText(string documentation)
         {
             string? temp = Process(documentation);
             var docs = XDocument.Parse(Process(documentation)!);
@@ -343,19 +346,13 @@ namespace DocGen.Parsing
             return types;
         }
 
-        public void Deconstruct(out Assembly assembly, out IEnumerable<Type> types)
-        {
-            assembly = this.assembly;
-            types = this.types;
-        }
-
         // Transform "<c>"s to asterisk-surrounded content
         // Reformat lists ("-+term+^description^all_the_rest"),
         // paragraphs (%paragraph%),
         // code examples (%*example*%),
         // <see> references ($referenced_name$&cref_attribute&)
         // Escape the special characters used
-        private string? Process(string? raw)
+        private static string? Process(string? raw)
         {
             if (raw == null) return null;
 
@@ -443,7 +440,7 @@ namespace DocGen.Parsing
         }
 
         #region Helpers
-        private string[]? GetAccessors(MemberInfo member)
+        private static string[]? GetAccessors(MemberInfo member)
         {
             if (member.MemberType != MemberTypes.Property &&
                 member.MemberType != MemberTypes.Event) return null;
@@ -460,7 +457,7 @@ namespace DocGen.Parsing
             else return new string[] { "add", "remove" };
         }
 
-        private Parameter[]? GetParameters(MemberInfo member)
+        private static Parameter[]? GetParameters(MemberInfo member)
         {
             if (member.MemberType != MemberTypes.Method &&
                 member.MemberType != MemberTypes.Constructor) return null;
@@ -485,7 +482,7 @@ namespace DocGen.Parsing
             }
         }
 
-        private MemberKind GetKind(MemberInfo member)
+        private static MemberKind GetKind(MemberInfo member)
         {
             return member.MemberType switch
             {
@@ -498,7 +495,7 @@ namespace DocGen.Parsing
             };
         }
 
-        private System.Type? GetReturnType(MemberInfo member)
+        private static System.Type? GetReturnType(MemberInfo member)
         {
             if (member is FieldInfo field) return field.FieldType;
             if (member is EventInfo @event) return @event.EventHandlerType;
@@ -509,7 +506,7 @@ namespace DocGen.Parsing
             return null;
         }
 
-        private GenericParameter[]? GetGenericParameters(MemberInfo member)
+        private static GenericParameter[]? GetGenericParameters(MemberInfo member)
         {
             if (member is MethodInfo method)
                 return method.GetGenericArguments().Select(p => new GenericParameter
@@ -522,7 +519,7 @@ namespace DocGen.Parsing
 
         // In root, searches for an element called searchFor with a name attribute with value compareTo
         // and returns value of the element
-        private string FindElementValueByName(XElement root, string searchFor, string compareTo)
+        private static string FindElementValueByName(XElement root, string searchFor, string compareTo)
         {
             return root.Elements(searchFor).FirstOrDefault(p =>
             {
@@ -532,7 +529,7 @@ namespace DocGen.Parsing
             })?.Value ?? string.Empty;
         }
 
-        private string Combine(string? str1, string? str2)
+        private static string Combine(string? str1, string? str2)
         {
             if (str1 == null && str2 == null)
                 return string.Empty;
