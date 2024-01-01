@@ -544,7 +544,8 @@ namespace DocGen.Parsing
         }
 
         private static string? RemoveIndents(string? text) =>
-            (text == null) ? null : Regex.Replace(text, @"^[\t ]+", string.Empty);
+            (text == null) ? null : Regex.Replace(text,
+                @"^[\t ]+", string.Empty, RegexOptions.Multiline);
         #endregion
     }
 }
