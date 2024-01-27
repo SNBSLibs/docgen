@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Reflection.Metadata;
 using DocGen.Entities;
 using DocGen.Parsing;
 using Type = DocGen.Entities.Type;
@@ -41,14 +42,15 @@ namespace DocGen.Tests
                         https://github.com/SNBSLibs/docgen
                         </seealso>
                     </member>
-                    <member name="M:Test.TestClass`2.Generic`1(System.Int32,System.Collections.Generic.List{`0},System.Collections.Generic.List{`3})">
+                    <member name="M:Test.TestClass`2.Generic`1(System.Int32,System.Collections.Generic.List{``0},System.Collections.Generic.List{`0})">
                         <summary>
                         Test of the generic parameters handling.
                         </summary>
+                        <typeparam name="T3">This is just a generic parameter.</typeparam>
                     </member>
                     <member name="M:Test.TestClass`2.DoTheJob(System.String,System.Int32)">
-                        <param name="str">A string.</param>
-                        <param name="integer">A 32-bit integer.</param>
+                        <param name="s">A string.</param>
+                        <param name="i">A 32-bit integer.</param>
                         <remarks>
                         A dummy method. Don't pass 3 to <paramref name="integer"/>.
                         </remarks>
@@ -84,10 +86,6 @@ namespace DocGen.Tests
                         <description>Smaller spheres that go around stars</description>
                         </item>
                         <item>
-                        <term>Planets</term>
-                        <description>Smaller spheres that go around stars</description>
-                        </item>
-                        <item>
                         <term>Black holes</term>
                         <description>Very curious objects</description>
                         </item>
@@ -98,15 +96,18 @@ namespace DocGen.Tests
                         <summary>
                         This is a constructor.
                         </summary>
+                        <exception cref="T:System.Exception">
+                        Never throws this exception.
+                        </exception>
                         <seealso>
                         <list type="bullet">
-                        <item>I</item>
-                        <item>Mum</item>
-                        <item>Dad</item>
-                        <item>Grandad</item>
-                        <item>Grandma</item>
-                        <item>Brother</item>
-                        <item>Sister</item>
+                        <item>A</item>
+                        <item>B</item>
+                        <item>C</item>
+                        <item>D</item>
+                        <item>E</item>
+                        <item>F</item>
+                        <item>G</item>
                         </list>
                         </seealso>
                     </member>
@@ -174,6 +175,111 @@ namespace DocGen.Tests
             Assert.That(type.GenericParameters[0].Description, Is.EqualTo("A generic parameter."));
             Assert.That(type.GenericParameters[1].Name, Is.EqualTo("T2"));
             Assert.That(type.GenericParameters[1].Description, Is.EqualTo("Another generic parameter."));
+        }
+
+        [Test]
+        public void CanFetchMemberSummary()
+        {
+            var type = types.Single(t => t.Name == "TestClass`2");
+            var member = type.Members.Single(m => m.Name == "TestProperty");
+            string summary = "This is a property of the $TestClass$&T:Test.TestClass& class.";
+
+            Assert.That(member.Summary, Is.EqualTo(summary));
+        }
+
+        [Test]
+        public void CanFetchMemberNotes()
+        {
+            var type = types.Single(t => t.Name == "TestClass`2");
+            var member = type.Members.Single(m => m.Name == "TestProperty");
+            string notes = "https://github.com/SNBSLibs/docgen";
+
+            Assert.That(member.Notes, Is.EqualTo(notes));
+        }
+
+        [Test]
+        public void CanFetchMemberParameters()
+        {
+            var type = types.Single(t => t.Name == "TestClass`2");
+            var member = type.Members.Single(m => m.Name == "DoTheJob");
+
+            Assert.That(member.Parameters?[0].Name, Is.EqualTo("s"));
+            Assert.That(member.Parameters?[0].Description, Is.EqualTo("A string."));
+            Assert.That(member.Parameters?[0].Type.FullName, Is.EqualTo("System.String"));
+            Assert.That(member.Parameters?[0].IsReference == false);
+            Assert.That(member.Parameters?[1].Name, Is.EqualTo("i"));
+            Assert.That(member.Parameters?[1].Description, Is.EqualTo("A 32\\-bit integer."));
+            Assert.That(member.Parameters?[1].Type.FullName, Is.EqualTo("System.Int32"));
+            Assert.That(member.Parameters?[1].IsReference == false);
+        }
+
+        [Test]
+        public void CanFetchMemberExceptions()
+        {
+            var type = types.Single(t => t.Name == "AnotherTestClass");
+            var member = type.Members.Single(m => m.Name == "#ctor");
+
+            Assert.That(member.Exceptions?[0].Type, Is.EqualTo("System.Exception"));
+            Assert.That(member.Exceptions?[0].ThrownOn, Is.EqualTo("Never throws this exception."));
+        }
+
+        [Test]
+        public void CanFetchMemberGenericParameters()
+        {
+            var type = types.Single(t => t.Name == "TestClass`2");
+            var member = type.Members.Single(m => m.Name == "Generic");
+
+            Assert.That(member.GenericParameters?[0].Name, Is.EqualTo("T3"));
+            Assert.That(member.GenericParameters?[0].Description, Is.EqualTo("This is just a generic parameter."));
+        }
+
+        [Test]
+        public void CanFetchMemberReturnDescription()
+        {
+            var type = types.Single(t => t.Name == "TestClass`2");
+            var member = type.Members.Single(m => m.Name == "TestProperty");
+            string returnDescription = "Always returns 0.";
+
+            Assert.That(member.ReturnDescription, Is.EqualTo(returnDescription));
+        }
+
+        [Test]
+        public void CanFetchMemberReturnType()
+        {
+            var type = types.Single(t => t.Name == "TestClass`2");
+            var member = type.Members.Single(m => m.Name == "TestProperty");
+            string returnType = "System.Int32";
+
+            Assert.That(member.ReturnType?.FullName, Is.EqualTo(returnType));
+        }
+
+        [Test]
+        public void CanFetchMemberAccessors()
+        {
+            var type = types.Single(t => t.Name == "TestClass`2");
+            var member = type.Members.Single(m => m.Name == "TestProperty");
+            string[] accessors = { "get" };
+
+            Assert.That(member.Accessors, Is.EqualTo(accessors));
+        }
+
+        [Test]
+        public void CanFetchMemberType()
+        {
+            var type = types.Single(t => t.Name == "AnotherTestClass");
+            var member = type.Members.Single(m => m.Name == "StructureOfTheWorld");
+            string typeName = "Test.AnotherTestClass";
+
+            Assert.That(member.Type?.FullName, Is.EqualTo(typeName));
+        }
+
+        [Test]
+        public void CanFetchMemberKind()
+        {
+            var type = types.Single(t => t.Name == "AnotherTestClass");
+            var member = type.Members.Single(m => m.Name == "MyEvent");
+
+            Assert.That(member.Kind, Is.EqualTo(MemberKind.Event));
         }
     }
 }
