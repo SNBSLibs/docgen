@@ -359,7 +359,8 @@ namespace DocGen.Parsing
             if (raw == null) return null;
 
             // Escaping
-            string result = Regex.Replace(raw, @"[\\*\-+\^%$&]", m => "\\" + m.Value);
+            string backslashesEscaped = raw.Replace("\\", "\\\\");
+            string result = Regex.Replace(backslashesEscaped, @"[*\-+\^%$&]", m => "\\" + m.Value);
 
             // Inline code
             result = result.Replace("<c>", "*");
