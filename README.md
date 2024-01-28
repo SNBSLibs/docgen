@@ -33,13 +33,9 @@ catch
     return;
 }
 
-WriteLine("Creating XMLDocParser");
+WriteLine("Parsing");
 
-var parser = new XMLDocParser(test, file: "docs.xml");
-
-WriteLine("Deconstructing");
-
-(Assembly tests, IEnumerable<Type> types) = parser;
+var types = XMLDocParser.Parse(test, file: "YourXmlDocsPath");
 
 WriteLine("\n-----------------------\n\n");
 
