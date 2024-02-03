@@ -5,7 +5,7 @@ namespace DocGen.Entities
     // Entity representing a generic parameter
 
     [Serializable]
-    public class GenericParameter
+    public class GenericParameterInformation
     {
         public string Name { get; internal set; } = string.Empty;
 

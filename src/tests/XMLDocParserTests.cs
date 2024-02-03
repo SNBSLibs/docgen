@@ -2,7 +2,6 @@
 using System.Reflection.Metadata;
 using DocGen.Entities;
 using DocGen.Parsing;
-using Type = DocGen.Entities.Type;
 
 namespace DocGen.Tests
 {
@@ -125,7 +124,7 @@ namespace DocGen.Tests
 
         // Initialized in the set-up method before each test
         // So we can assume that null never evaluates to null xD
-        private IEnumerable<Type> types = null!;
+        private IEnumerable<TypeInformation> types = null!;
         // Added to ensure that testassembly is referenced
         private Test.AnotherTestClass test = null!;
 

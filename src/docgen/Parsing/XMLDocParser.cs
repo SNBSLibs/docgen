@@ -5,8 +5,6 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
 using DocGen.Entities;
-using Exception = DocGen.Entities.Exception;
-using Type = DocGen.Entities.Type;
 
 namespace DocGen.Parsing
 {
@@ -14,9 +12,9 @@ namespace DocGen.Parsing
     public static class XMLDocParser
     {
         // Always initialized when the Parse method is called
-        private static List<Type> types = null!;
+        private static List<TypeInformation> types = null!;
 
-        public static IEnumerable<Type> Parse(Assembly assembly,
+        public static IEnumerable<TypeInformation> Parse(Assembly assembly,
             string? docs = null, string? file = null, Stream? stream = null)
         {
             ArgumentNullException.ThrowIfNull(assembly, nameof(assembly));
@@ -31,15 +29,15 @@ namespace DocGen.Parsing
                 // Filter out compiler-generated types
                 .Where(t => t.GetCustomAttribute(typeof(CompilerGeneratedAttribute)) == null)
                 .Select(t => {
-                    var type = new Type
+                    var type = new TypeInformation
                     {
                         Name = t.Name,
                         FullName = t.FullName ?? t.Name,
-                        GenericParameters = t.GetGenericArguments().Select(p => new GenericParameter
+                        GenericParameters = t.GetGenericArguments().Select(p => new GenericParameterInformation
                         {
                             Name = p.Name
                         }).ToArray(),
-                        Members = t.GetMembers().Select(m => new Member
+                        Members = t.GetMembers().Select(m => new MemberInformation
                         {
                             // Replace ".ctor" with "#ctor", as it's stored in XML docs 
                             Name = m.Name.Replace('.', '#'),
@@ -102,16 +100,16 @@ namespace DocGen.Parsing
             else return null!;
         }
 
-        private static IEnumerable<Type> ParseFromFile(string docsPath) =>
+        private static IEnumerable<TypeInformation> ParseFromFile(string docsPath) =>
             ParseFromText(File.ReadAllText(docsPath));
 
-        private static IEnumerable<Type> ParseFromStream(Stream stream)
+        private static IEnumerable<TypeInformation> ParseFromStream(Stream stream)
         {
             using var reader = new StreamReader(stream);
             return ParseFromText(reader.ReadToEnd());
         }
 
-        private static IEnumerable<Type> ParseFromText(string documentation)
+        private static IEnumerable<TypeInformation> ParseFromText(string documentation)
         {
             string? temp = Process(documentation);
             var docs = XDocument.Parse(Process(documentation)!);
@@ -156,7 +154,7 @@ namespace DocGen.Parsing
                 // --------- Parse members ---------
                 for (int j = 0; j < types[i].Members.Count(); j++)
                 {
-                    Member member = types[i].Members[j];
+                    Entities.MemberInformation member = types[i].Members[j];
                     if (member.Kind == MemberKind.Unknown) continue;
 
                     var nameBuilder = new StringBuilder();
@@ -325,14 +323,14 @@ namespace DocGen.Parsing
                         && member.Kind != MemberKind.Event)
                     {
                         var exceptionElements = memberDocs.Elements("exception");
-                        var exceptions = new List<Exception>();
+                        var exceptions = new List<ExceptionInformation>();
 
                         foreach (var element in exceptionElements)
                         {
                             string? cref = element.Attribute("cref")?.Value;
                             if (cref == null) continue;
 
-                            var exception = new Exception
+                            var exception = new ExceptionInformation
                             {
                                 Type = cref[2..],
                                 ThrownOn = RemoveIndents(element.Value.Trim()) ?? string.Empty
@@ -443,7 +441,7 @@ namespace DocGen.Parsing
         }
 
         #region Helpers
-        private static string[]? GetAccessors(MemberInfo member)
+        private static string[]? GetAccessors(System.Reflection.MemberInfo member)
         {
             if (member.MemberType != MemberTypes.Property &&
                 member.MemberType != MemberTypes.Event) return null;
@@ -460,7 +458,7 @@ namespace DocGen.Parsing
             else return new string[] { "add", "remove" };
         }
 
-        private static Parameter[]? GetParameters(MemberInfo member)
+        private static ParameterInformation[]? GetParameters(System.Reflection.MemberInfo member)
         {
             if (member.MemberType != MemberTypes.Method &&
                 member.MemberType != MemberTypes.Constructor) return null;
@@ -468,7 +466,7 @@ namespace DocGen.Parsing
             if (member.MemberType == MemberTypes.Method)
             {
                 var method = (MethodInfo)member;
-                return method.GetParameters().Select(p => new Parameter
+                return method.GetParameters().Select(p => new ParameterInformation
                 {
                     Name = p.Name ?? "param",  // This is the default name for a parameter
                     Type = p.ParameterType
@@ -476,7 +474,7 @@ namespace DocGen.Parsing
             } else  // The member is a constructor
             {
                 var ctor = (ConstructorInfo)member;
-                return ctor.GetParameters().Select(p => new Parameter
+                return ctor.GetParameters().Select(p => new ParameterInformation
                 {
                     Name = p.Name ?? "param",
                     Type = p.ParameterType,
@@ -485,7 +483,7 @@ namespace DocGen.Parsing
             }
         }
 
-        private static MemberKind GetKind(MemberInfo member)
+        private static MemberKind GetKind(System.Reflection.MemberInfo member)
         {
             return member.MemberType switch
             {
@@ -498,7 +496,7 @@ namespace DocGen.Parsing
             };
         }
 
-        private static System.Type? GetReturnType(MemberInfo member)
+        private static System.Type? GetReturnType(System.Reflection.MemberInfo member)
         {
             if (member is FieldInfo field) return field.FieldType;
             if (member is EventInfo @event) return @event.EventHandlerType;
@@ -509,10 +507,10 @@ namespace DocGen.Parsing
             return null;
         }
 
-        private static GenericParameter[]? GetGenericParameters(MemberInfo member)
+        private static GenericParameterInformation[]? GetGenericParameters(System.Reflection.MemberInfo member)
         {
             if (member is MethodInfo method)
-                return method.GetGenericArguments().Select(p => new GenericParameter
+                return method.GetGenericArguments().Select(p => new GenericParameterInformation
                 {
                     Name = p.Name
                 }).ToArray();

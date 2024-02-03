@@ -3,7 +3,7 @@
     // Entity representing a type
 
     [Serializable]
-    public class Type
+    public class TypeInformation
     {
         public string FullName { get; set; } = string.Empty;
 
@@ -11,12 +11,12 @@
 
         public string Summary { get; internal set; } = string.Empty;
 
-        public GenericParameter[] GenericParameters { get; internal set; }
-            = new GenericParameter[] { };
+        public GenericParameterInformation[] GenericParameters { get; internal set; }
+            = new GenericParameterInformation[] { };
 
         public string Notes { get; internal set; } = string.Empty;
 
-        public Member[] Members { get; internal set; }
-            = new Member[] { };
+        public MemberInformation[] Members { get; internal set; }
+            = new MemberInformation[] { };
     }
 }

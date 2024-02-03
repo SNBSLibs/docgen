@@ -3,17 +3,17 @@
     // Entity representing a member of a type
 
     [Serializable]
-    public class Member
+    public class MemberInformation
     {
         public string Name { get; internal set; } = string.Empty;
 
         public string Summary { get; internal set; } = string.Empty;
 
-        public Parameter[]? Parameters { get; internal set; }
+        public ParameterInformation[]? Parameters { get; internal set; }
 
-        public Exception[]? Exceptions { get; internal set; }
+        public ExceptionInformation[]? Exceptions { get; internal set; }
 
-        public GenericParameter[]? GenericParameters { get; internal set; }
+        public GenericParameterInformation[]? GenericParameters { get; internal set; }
 
         public string? ReturnDescription { get; internal set; } = string.Empty;
 
@@ -24,7 +24,7 @@
 
         public string Notes { get; internal set; } = string.Empty;
 
-        public Type? Type { get; internal set; }  // Null means the type is unknown
+        public TypeInformation? Type { get; internal set; }  // Null means the type is unknown
 
         public MemberKind Kind { get; internal set; } = MemberKind.Unknown;
     }

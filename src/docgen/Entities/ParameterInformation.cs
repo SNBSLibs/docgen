@@ -3,7 +3,7 @@
     // Entity representing parameter of a method
 
     [Serializable]
-    public class Parameter
+    public class ParameterInformation
     {
         public string Name { get; internal set; } = string.Empty;
 
