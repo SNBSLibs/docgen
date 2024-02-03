@@ -49,6 +49,9 @@ namespace DocGen.Parsing
                         template.Substring(lastSpecialChar, brace.Item1 - lastSpecialChar);
 
                     unclosedBraces.Add(Tuple.Create(brace.Item1, contextString));
+
+                    // After a context string has been fetched, it is not necessary to keep it
+                    template = template.Remove(lastSpecialChar, brace.Item1 - lastSpecialChar);
                 }
                 else
                 {
