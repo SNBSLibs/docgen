@@ -1,3 +1,5 @@
+**Please note that this project is curently under development. Although the core features work, they are not yet fully stable.**
+
 # docgen
 
 A lightweight HTML documentation ("manpages") generator for .NET-oriented libraries.
