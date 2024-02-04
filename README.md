@@ -1,12 +1,27 @@
 **Please note that this project is curently under development. Although the core features work, they are not yet fully stable.**
 
-# docgen
+# DocGen
 
-A lightweight HTML documentation ("manpages") generator for .NET-oriented libraries.
+DocGen is a .NET library that can generate docs for other libraries. How does it work?
+
+ - Developers write XML comments like this one.
+
+```c#
+/// <summary>Wow, this is a method!</summary>
+public void MyMethod() {
+  // code
+}
+```
+
+ - The compiler exports them into an XML file.
+ - You feed DocGen the library and the XML file.
+ - You get a documentation site!
 
 ## Usage example
 
-This project has not yet been released (although there's a pre-release), so we haven't yet generated a documentation for it! However, we have a usage example.
+Here's a usage example.
+
+Make a simple library containing empty methods, add some XML comments, export them and feed DocGen (the code is below 👇). There's a checkbox in Visual Studio project settings for exporting XML comments.
 
 ```c#
 using System.Reflection;
