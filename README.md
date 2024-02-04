@@ -9,15 +9,9 @@ This project has not yet been released (although there's a pre-release), so we h
 ```c#
 using System.Reflection;
 using DocGen.Parsing;
-using Type = DocGen.Entities.Type;
 using static System.Console;
 
 WriteLine("Starting\n");
-
-// ************************
-// ------------------------
-// ************************
-
 WriteLine("Loading test assembly");
 
 Assembly test;
@@ -37,70 +31,65 @@ WriteLine("Parsing");
 
 var types = XMLDocParser.Parse(test, file: "YourXmlDocsPath");
 
-WriteLine("\n-----------------------\n\n");
+WriteLine("\n-----------------------\n");
 
 WriteLine("Results");
 
 foreach (var type in types)
 {
     WriteLine("Type {0}", type.Name);
-    WriteLine("Summary:\n\n{0}\n\n", type.Summary);
-    WriteLine("Notes:\n\n{0}\n\n", type.Notes);
+    WriteLine("Summary:\n{0}\n", type.Summary);
+    WriteLine("Notes:\n{0}\n", type.Notes);
 
-    WriteLine("Generic parameters:\n\n");
+    WriteLine("Generic parameters:\n");
     foreach (var genericParameter in type.GenericParameters)
     {
         WriteLine("{0}: {1}", genericParameter.Name, genericParameter.Description);
     }
-    WriteLine("\n\n");
+    WriteLine("\n");
 
-    WriteLine("Members:\n\n");
+    WriteLine("Members:\n");
     foreach (var member in type.Members)
     {
         WriteLine("Member {0} ({1})", member.Name, member.Kind);
-        WriteLine("Summary:\n\n{0}\n\n", member.Summary);
-        WriteLine("Notes:\n\n{0}\n\n", member.Notes);
+        WriteLine("Summary:\n{0}\n", member.Summary);
+        WriteLine("Notes:\n{0}\n", member.Notes);
 
-        WriteLine("Returns: {0}\n\n{1}\n\n", member.ReturnType, member.ReturnDescription);
+        WriteLine("Returns: {0}\n{1}\n", member.ReturnType, member.ReturnDescription);
 
         if (member.GenericParameters != null)
         {
-            WriteLine("Generic parameters:\n\n");
+            WriteLine("Generic parameters:\n");
             foreach (var genericParameter in member.GenericParameters)
             {
-                WriteLine("{0}: {1}",
-                    genericParameter.Name, genericParameter.Description);
+                WriteLine("{0}: {1}",  genericParameter.Name, genericParameter.Description);
             }
-            WriteLine("\n\n");
+            WriteLine("\n");
         }
 
         if (member.Parameters != null)
         {
-            WriteLine("Parameters:\n\n");
+            WriteLine("Parameters:\n");
             foreach (var param in member.Parameters)
             {
                 WriteLine("{0}{1} of type {2}: {3}",
                     param.Name, (param.IsReference ? " (reference)" : null), param.Type, param.Description);
             }
-            WriteLine("\n\n");
+            WriteLine("\n");
         }
 
         if (member.Exceptions != null)
         {
-            WriteLine("Possible exceptions:\n\n");
+            WriteLine("Possible exceptions:\n");
             foreach (var exception in member.Exceptions)
             {
                 WriteLine("{0}: {1}", exception.Type, exception.ThrownOn);
             }
-            WriteLine("\n\n");
+            WriteLine("\n");
         }
     }
-    WriteLine("\n\n");
+    WriteLine("\n");
 }
-
-// ************************
-// ------------------------
-// ************************
 
 WriteLine("\nFinish");
 ```
