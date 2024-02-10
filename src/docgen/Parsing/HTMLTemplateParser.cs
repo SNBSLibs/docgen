@@ -34,7 +34,9 @@ namespace DocGen.Parsing
         private static string ParseFromText(string template, object obj)
         {
             var braces = GetCurlyBraces(template);
-            var contexts = FetchContexts(template, braces);
+            var result = FetchContexts(template, braces);
+            var contexts = result.Item2;
+            template = result.Item1;
 
             foreach (var context in contexts)
             {
@@ -54,14 +56,14 @@ namespace DocGen.Parsing
                                     ((IEnumerable)value).Count() > 0)
                                 {
                                     // Leave the context untouched
-                                    template.Remove(context.Item1, 1);
-                                    template.Remove(context.Item2, 1);
+                                    template = template.Remove(context.Item1, 1);
+                                    template = template.Remove(context.Item2, 1);
                                     break;
                                 }
                             }
                         }
 
-                        template.Remove(context.Item1,
+                        template = template.Remove(context.Item1,
                             context.Item2 - context.Item1 + 1);
                         break;
                     case '?':
@@ -70,8 +72,8 @@ namespace DocGen.Parsing
 
                         if (value2 == null)
                         {
-                            template.Remove(context.Item1, 1);
-                            template.Remove(context.Item2, 1);
+                            template = template.Remove(context.Item1, 1);
+                            template = template.Remove(context.Item2, 1);
                             break;
                         }
 
@@ -80,13 +82,13 @@ namespace DocGen.Parsing
                             if (value2 is not IEnumerable ||
                                 ((IEnumerable)value2).Count() == 0)
                             {
-                                template.Remove(context.Item1, 1);
-                                template.Remove(context.Item2, 1);
+                                template = template.Remove(context.Item1, 1);
+                                template = template.Remove(context.Item2, 1);
                                 break;
                             }
                         }
 
-                        template.Remove(context.Item1,
+                        template = template.Remove(context.Item1,
                             context.Item2 - context.Item1 + 1);
                         break;
                     case '*':
@@ -96,13 +98,13 @@ namespace DocGen.Parsing
 
                         if (enumerable == null || enumerable.Count() == 0)
                         {
-                            template.Remove(context.Item1,
+                            template = template.Remove(context.Item1,
                                 context.Item2 - context.Item1 + 1);
                             break;
                         }
 
                         string contents = template[(context.Item1 + 1)..context.Item2];
-                        template.Remove(context.Item1,
+                        template = template.Remove(context.Item1,
                             context.Item2 - context.Item1 + 1);
 
                         var builder = new StringBuilder();
@@ -128,7 +130,7 @@ namespace DocGen.Parsing
             }
         }
 
-        private static List<Tuple<int, int, string>> FetchContexts(string text,
+        private static Tuple<string, List<Tuple<int, int, string>>> FetchContexts(string text,
             Tuple<int, bool>[] braces)
         {
             var contexts = new List<Tuple<int, int, string>>();
@@ -189,7 +191,7 @@ namespace DocGen.Parsing
                 };
             }
 
-            return contexts;
+            return Tuple.Create(text, contexts);
         }
 
         private static object? FetchProperty(object obj, string propertyName)
