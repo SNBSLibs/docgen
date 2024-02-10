@@ -98,8 +98,10 @@ namespace DocGen.Parsing
 
             for (int i = 0; i < text.Length; i++)
             {
-                if (text[i] == '{') braces.Add(Tuple.Create(i, true));
-                if (text[i] == '}') braces.Add(Tuple.Create(i, false));
+                if (text[i] == '{' &&
+                    (i == 0 || text[i - 1] == '\\')) braces.Add(Tuple.Create(i, true));
+                if (text[i] == '}' &&
+                    (i == 0 || text[i - 1] == '\\')) braces.Add(Tuple.Create(i, false));
             }
 
             return braces.ToArray();
