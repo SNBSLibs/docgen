@@ -26,7 +26,7 @@ namespace DocGen.Parsing
         }
 
         private static string ParseFromFile(string templatePath, object obj) =>
-            ParseFromFile(File.ReadAllText(templatePath), obj);
+            ParseFromText(File.ReadAllText(templatePath), obj);
 
         private static string ParseFromStream(Stream stream, object obj)
         {
