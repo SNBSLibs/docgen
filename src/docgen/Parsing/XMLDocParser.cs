@@ -175,7 +175,7 @@ namespace DocGen.Parsing
                     if (member.GenericParameters != null &&
                         member.GenericParameters.Count() > 0)
                     {
-                        nameBuilder.Append("`" + member.GenericParameters.Count());
+                        nameBuilder.Append("``" + member.GenericParameters.Count());
                     }
                     
                     if (prefix == "M:")
